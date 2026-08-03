@@ -149,7 +149,7 @@ export class EVLiveClient {
     }
   }
 
-  // Start streaming microphone input to Gemini
+// Start streaming microphone input to Gemini
   startMicrophoneStream() {
     console.log("🎤 Microphone active. Start speaking...");
     
@@ -165,12 +165,13 @@ export class EVLiveClient {
         // Encode raw PCM chunks from the mic to base64
         const base64Audio = data.toString('base64');
         
+        // NO arrays. Just the raw audio object.
         const message = {
           realtimeInput: {
-            audio: [{
+            audio: {
               mimeType: "audio/pcm;rate=16000",
               data: base64Audio
-            }]
+            }
           }
         };
         this.ws.send(JSON.stringify(message));
