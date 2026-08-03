@@ -23,13 +23,6 @@ export class EVLiveClient {
       bitDepth: 16,
       sampleRate: 24000
     });
-
-    // NEW: Initialize Microphone Input (16kHz is standard for Gemini Input)
-    this.mic = new Decibri({
-      sampleRate: 16000,
-      channels: 1,
-      format: 'int16'
-    });
   }
 
   connect() {
@@ -44,7 +37,7 @@ export class EVLiveClient {
       console.log(`⚡ Connected to Gemini Live API using engine: [${this.currentModel}]`);
       this.sendInitialSetup();
 
-      // Start listening to your microphone immediately instead of sending text
+      // Start listening to your microphone immediately
       this.startMicrophoneStream();
     });
 
@@ -57,7 +50,7 @@ export class EVLiveClient {
       }
     });
 
-    // UPDATE: Expose the hidden disconnect reason from the server
+    // Expose the hidden disconnect reason from the server
     this.ws.on('close', (code, reason) => {
       console.log(`🔌 Connection closed. Code: ${code}, Reason: ${reason.toString() || 'None'}`);
     });
@@ -70,7 +63,6 @@ export class EVLiveClient {
       setup: {
         model: this.currentModel,
         generationConfig: {
-          // UPDATE: Removed 'TEXT'. Some Live models reject dual modalities.
           responseModalities: ['AUDIO'],
           speechConfig: {
             voiceConfig: {
@@ -85,7 +77,7 @@ export class EVLiveClient {
             }
           ]
         },
-        // UPDATE: Defensively ensure tools is always an array to prevent 400 Bad Request
+        // Defensively ensure tools is always an array to prevent 400 Bad Request
         tools: Array.isArray(evToolsDeclaration) ? evToolsDeclaration : [evToolsDeclaration]
       }
     };
@@ -98,7 +90,7 @@ export class EVLiveClient {
     if (message.serverContent?.modelTurn?.parts) {
       for (const part of message.serverContent.modelTurn.parts) {
         
-        // Handle Tool Calls (What we had before)
+        // Handle Tool Calls
         if (part.functionCall) {
           const { name, args, id } = part.functionCall;
           console.log(`\n🛠️ E.V. action requested: ${name}`, args);
@@ -107,16 +99,16 @@ export class EVLiveClient {
           this.sendToolResponse(id, name, result);
         }
         
-        // NEW: Play Audio Data
+        // Play Audio Data
         if (part.inlineData && part.inlineData.mimeType.startsWith('audio/')) {
-          // Gemini sends base64 PCM data. We need to decode it to raw bytes for the speaker.
+          // Gemini sends base64 PCM data. Decode it to raw bytes for the speaker.
           const audioBuffer = Buffer.from(part.inlineData.data, 'base64');
           this.speaker.write(audioBuffer);
         }
       }
     }
     
-    // NEW: Detect when E.V. is completely finished speaking
+    // Detect when E.V. is completely finished speaking
     if (message.serverContent?.turnComplete) {
       console.log('✅ E.V. finished responding.\n');
     }
