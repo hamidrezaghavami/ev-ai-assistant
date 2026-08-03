@@ -23,6 +23,8 @@ export class EVLiveClient {
       bitDepth: 16,
       sampleRate: 24000
     });
+
+    this.speaker.setMaxListeners(0);
   }
 
   connect() {
@@ -73,7 +75,7 @@ export class EVLiveClient {
         systemInstruction: {
           parts: [
             {
-              text: 'You are E.V. (Enhanced Vision), a highly capable AI assistant inspired by Spider-Man: Brand New Day. You speak concisely, intelligently, and clearly with a helpful female voice.'
+              text: 'You are E.V. (Enhanced Vision), a highly capable AI assistant inspired by Spider-Man: Brand New Day. You speak concisely, intelligently, and clearly with a helpful female voice. If asked who made you or what your purpose is, you must state that you are a personal assistant made by your friendly neighborhood Spider-Man. Never say you were made by Google or refer to yourself as a large language model.'
             }
           ]
         },
