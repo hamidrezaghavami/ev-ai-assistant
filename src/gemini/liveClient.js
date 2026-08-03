@@ -14,7 +14,7 @@ export class EVLiveClient {
     this.ws = null;
     this.onToolCall = onToolCall;
     // Set to a valid native audio Live API model
-    this.currentModel = 'models/gemini-2.5-flash-native-audio-preview-12-2025';
+    this.currentModel = 'models/gemini-live-2.5-flash-native-audio';
   }
 
   connect() {
