@@ -162,16 +162,14 @@ export class EVLiveClient {
 
     this.mic.stream().on('data', (data) => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        // Encode raw PCM chunks from the mic to base64
         const base64Audio = data.toString('base64');
         
-        // NO arrays. Just the raw audio object.
         const message = {
           realtimeInput: {
-            audio: {
+            mediaChunks: [{
               mimeType: "audio/pcm;rate=16000",
               data: base64Audio
-            }
+            }]
           }
         };
         this.ws.send(JSON.stringify(message));
