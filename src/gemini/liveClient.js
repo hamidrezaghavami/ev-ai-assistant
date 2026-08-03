@@ -88,29 +88,26 @@ export class EVLiveClient {
 
   async handleServerMessage(message) {
     if (message.serverContent?.modelTurn?.parts) {
+      this.isMuted = true; // 🔇 Mute microphone
+
       for (const part of message.serverContent.modelTurn.parts) {
-        
-        // Handle Tool Calls
         if (part.functionCall) {
           const { name, args, id } = part.functionCall;
           console.log(`\n🛠️ E.V. action requested: ${name}`, args);
-
           const result = await this.onToolCall(name, args);
           this.sendToolResponse(id, name, result);
         }
         
-        // Play Audio Data
         if (part.inlineData && part.inlineData.mimeType.startsWith('audio/')) {
-          // Gemini sends base64 PCM data. Decode it to raw bytes for the speaker.
           const audioBuffer = Buffer.from(part.inlineData.data, 'base64');
           this.speaker.write(audioBuffer);
         }
       }
     }
     
-    // Detect when E.V. is completely finished speaking
     if (message.serverContent?.turnComplete) {
       console.log('✅ E.V. finished responding.\n');
+      this.isMuted = false; // 🎤 Unmute microphone
     }
   }
 
@@ -161,6 +158,9 @@ export class EVLiveClient {
     });
 
     this.mic.stream().on('data', (data) => {
+      // 🔇 Ignore mic input while E.V. is speaking to prevent echo loops
+      if (this.isMuted) return;
+      
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         const base64Audio = data.toString('base64');
         
