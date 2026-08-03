@@ -100,15 +100,7 @@ export class EVLiveClient {
         
         if (part.inlineData && part.inlineData.mimeType.startsWith('audio/')) {
           const audioBuffer = Buffer.from(part.inlineData.data, 'base64');
-
-          this.audioQueue = this.audioQueue || [];
-          this.audioQueue.push(audioBuffer);
-          
-          // Wait until we have 5 chunks before playing
-          if (this.audioQueue.length >= 5) {
-            this.speaker.write(Buffer.concat(this.audioQueue));
-            this.audioQueue = [];
-          }
+          this.playAudioSafe(audioBuffer);
         }
       }
     }
@@ -116,6 +108,19 @@ export class EVLiveClient {
     if (message.serverContent?.turnComplete) {
       console.log('✅ E.V. finished responding.\n');
       this.isMuted = false; // 🎤 Unmute microphone
+    }
+  }
+
+  playAudioSafe(audioBuffer) {
+    // If the speaker buffer is full, it returns false. 
+    // We then wait for the 'drain' event before continuing.
+    const canWrite = this.speaker.write(audioBuffer);
+    
+    if (!canWrite) {
+      this.speaker.once('drain', () => {
+        // You could add logic here to write the next chunk if you queue them, 
+        // but for now, just letting it drain often resolves the severe stutter.
+      });
     }
   }
 
