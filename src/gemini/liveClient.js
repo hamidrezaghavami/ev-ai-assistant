@@ -4,8 +4,8 @@ so it can invoke these local handlers.
 */
 import WebSocket from 'ws';
 import { evToolsDeclaration } from '../tools/schemas.js';
-import pkg from 'decibri';
-const { Decibri, DecibriOutput } = pkg;
+import Speaker from 'speaker';
+import record from 'node-record-lpcm16';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
@@ -15,12 +15,13 @@ export class EVLiveClient {
   constructor(onToolCall) {
     this.ws = null;
     this.onToolCall = onToolCall;
-    this.currentModel = 'models/gemini-3.1-flash-live-preview'; 
+    this.currentModel = 'models/gemini-2.0-flash-exp'; 
 
-    // NEW: Initialize Speaker Output (24kHz is standard for Gemini Audio)
-    this.speaker = new DecibriOutput({
-      sampleRate: 24000, 
-      channels: 1
+    // Initialize standard Mac Speaker Output (24kHz is standard for Gemini Audio)
+    this.speaker = new Speaker({
+      channels: 1,
+      bitDepth: 16,
+      sampleRate: 24000
     });
 
     // NEW: Initialize Microphone Input (16kHz is standard for Gemini Input)
@@ -156,14 +157,21 @@ export class EVLiveClient {
     }
   }
 
-  // NEW: Start streaming microphone input to Gemini
+  // Start streaming microphone input to Gemini
   startMicrophoneStream() {
     console.log("🎤 Microphone active. Start speaking...");
     
-    this.mic.on('data', (pcmBuffer) => {
+    // Capture from SoX and pipe to Gemini
+    this.mic = record.record({
+      sampleRate: 16000,
+      channels: 1,
+      threshold: 0
+    });
+
+    this.mic.stream().on('data', (data) => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         // Encode raw PCM chunks from the mic to base64
-        const base64Audio = pcmBuffer.toString('base64');
+        const base64Audio = data.toString('base64');
         
         const message = {
           realtimeInput: {
@@ -176,7 +184,5 @@ export class EVLiveClient {
         this.ws.send(JSON.stringify(message));
       }
     });
-
-    this.mic.start();
   }
 }
