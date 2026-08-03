@@ -15,7 +15,7 @@ export class EVLiveClient {
   constructor(onToolCall) {
     this.ws = null;
     this.onToolCall = onToolCall;
-    this.currentModel = 'models/gemini-2.0-flash-exp'; 
+    this.currentModel = 'models/gemini-3.1-flash-live-preview'; 
 
     // Initialize standard Mac Speaker Output (24kHz is standard for Gemini Audio)
     this.speaker = new Speaker({
