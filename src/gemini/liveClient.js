@@ -4,6 +4,7 @@ so it can invoke these local handlers.
 */
 import WebSocket from 'ws';
 import { evToolsDeclaration } from '../tools/schemas.js';
+import { Decibri, DecibriOutput } from 'decibri';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
@@ -14,6 +15,19 @@ export class EVLiveClient {
     this.ws = null;
     this.onToolCall = onToolCall;
     this.currentModel = 'models/gemini-3.1-flash-live-preview'; 
+
+    // NEW: Initialize Speaker Output (24kHz is standard for Gemini Audio)
+    this.speaker = new DecibriOutput({
+      sampleRate: 24000, 
+      channels: 1
+    });
+
+    // NEW: Initialize Microphone Input (16kHz is standard for Gemini Input)
+    this.mic = new Decibri({
+      sampleRate: 16000,
+      channels: 1,
+      format: 'int16'
+    });
   }
 
   connect() {
@@ -28,10 +42,8 @@ export class EVLiveClient {
       console.log(`⚡ Connected to Gemini Live API using engine: [${this.currentModel}]`);
       this.sendInitialSetup();
 
-      // Add a small delay, then send a test message
-      setTimeout(() => {
-        this.sendTextMessage("Hello E.V., are you receiving this message?");
-      }, 2000);
+      // Start listening to your microphone immediately instead of sending text
+      this.startMicrophoneStream();
     });
 
     this.ws.on('message', async (data) => {
@@ -83,14 +95,28 @@ export class EVLiveClient {
   async handleServerMessage(message) {
     if (message.serverContent?.modelTurn?.parts) {
       for (const part of message.serverContent.modelTurn.parts) {
+        
+        // Handle Tool Calls (What we had before)
         if (part.functionCall) {
           const { name, args, id } = part.functionCall;
-          console.log(`🛠️ E.V. action requested: ${name}`, args);
+          console.log(`\n🛠️ E.V. action requested: ${name}`, args);
 
           const result = await this.onToolCall(name, args);
           this.sendToolResponse(id, name, result);
         }
+        
+        // NEW: Play Audio Data
+        if (part.inlineData && part.inlineData.mimeType.startsWith('audio/')) {
+          // Gemini sends base64 PCM data. We need to decode it to raw bytes for the speaker.
+          const audioBuffer = Buffer.from(part.inlineData.data, 'base64');
+          this.speaker.write(audioBuffer);
+        }
       }
+    }
+    
+    // NEW: Detect when E.V. is completely finished speaking
+    if (message.serverContent?.turnComplete) {
+      console.log('✅ E.V. finished responding.\n');
     }
   }
 
@@ -127,5 +153,29 @@ export class EVLiveClient {
       this.ws.send(JSON.stringify(message));
       console.log(`📤 Sent text prompt: "${text}"`);
     }
+  }
+
+  // NEW: Start streaming microphone input to Gemini
+  startMicrophoneStream() {
+    console.log("🎤 Microphone active. Start speaking...");
+    
+    this.mic.on('data', (pcmBuffer) => {
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        // Encode raw PCM chunks from the mic to base64
+        const base64Audio = pcmBuffer.toString('base64');
+        
+        const message = {
+          realtimeInput: {
+            mediaChunks: [{
+              mimeType: "audio/pcm;rate=16000",
+              data: base64Audio
+            }]
+          }
+        };
+        this.ws.send(JSON.stringify(message));
+      }
+    });
+
+    this.mic.start();
   }
 }
