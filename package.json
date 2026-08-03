@@ -13,8 +13,14 @@
   "license": "UNLICENSED",
   "author": "HamidReza Ghavami",
   "type": "module",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@google/genai": "^0.1.1",
+    "ws": "^8.18.0"
   }
 }
