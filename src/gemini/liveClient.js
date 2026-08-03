@@ -27,6 +27,11 @@ export class EVLiveClient {
     this.ws.on('open', () => {
       console.log(`⚡ Connected to Gemini Live API using engine: [${this.currentModel}]`);
       this.sendInitialSetup();
+
+      // Add a small delay, then send a test message
+      setTimeout(() => {
+        this.sendTextMessage("Hello E.V., are you receiving this message?");
+      }, 2000);
     });
 
     this.ws.on('message', async (data) => {
@@ -103,6 +108,24 @@ export class EVLiveClient {
         }
       };
       this.ws.send(JSON.stringify(toolResponseMessage));
+    }
+  }
+
+  sendTextMessage(text) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      const message = {
+        clientContent: {
+          turns: [
+            {
+              role: "user",
+              parts: [{ text: text }]
+            }
+          ],
+          turnComplete: true
+        }
+      };
+      this.ws.send(JSON.stringify(message));
+      console.log(`📤 Sent text prompt: "${text}"`);
     }
   }
 }
