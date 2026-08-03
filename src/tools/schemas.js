@@ -2,8 +2,8 @@ export const evToolsDeclaration = [
   {
     functionDeclarations: [
       {
-        name: 'switchModel',
-        description: 'Switch the underlying AI engine between 3.6 Flash (fast) and 3.1 Pro (advanced reasoning/code).',
+        name: 'switch_model',
+        description: 'Switch the underlying AI engine between 3.1 Flash (fast) and 3.5 Pro (advanced reasoning/code).',
         parameters: {
           type: 'object',
           properties: {
@@ -16,15 +16,18 @@ export const evToolsDeclaration = [
         }
       },
       {
-        name: 'writeWorkspaceFile',
-        description: 'Write or update a text file inside the restricted workspace folder.',
+        name: "initiate_shutdown",
+        description: "Shuts down the E.V. system. Call this when Hamidreza tells you to sleep, shut down, or go offline. Say a cool, brief sign-off like 'Going dark' or 'System powering down' before executing."
+      },
+      {
+        name: 'readWorkspaceFile',
+        description: 'Read the contents of a file inside the workspace so you can view it before editing.',
         parameters: {
           type: 'object',
           properties: {
-            filename: { type: 'string', description: 'Name of the file (e.g. notes.txt)' },
-            content: { type: 'string', description: 'Text content to save.' }
+            filename: { type: 'string', description: 'Name of the file to read (e.g., notes.md)' }
           },
-          required: ['filename', 'content']
+          required: ['filename']
         }
       },
       {
@@ -36,6 +39,17 @@ export const evToolsDeclaration = [
             filename: { type: 'string', description: 'Name of the file to remove.' }
           },
           required: ['filename']
+        }
+      },
+      {
+        name: 'createWorkspaceFolder',
+        description: 'Create a new sub-folder inside the restricted workspace.',
+        parameters: {
+          type: 'object',
+          properties: {
+            folderName: { type: 'string', description: 'Name of the new folder to create.' }
+          },
+          required: ['folderName']
         }
       },
       {

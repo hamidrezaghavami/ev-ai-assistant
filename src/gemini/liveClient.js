@@ -1,20 +1,19 @@
-/* WebSocket / Gemini Multimodal Live client
-Declarations to pass to the Gemini Multimodal Live API
-so it can invoke these local handlers.
-*/
 import WebSocket from 'ws';
 import { evToolsDeclaration } from '../tools/schemas.js';
 import Speaker from 'speaker';
 import record from 'node-record-lpcm16';
+import fs from 'fs/promises';
+import path from 'path';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
 const URI = `wss://${HOST}/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${API_KEY}`;
 
+const WORKSPACE_DIR = path.resolve(process.cwd(), 'workspace');
+
 export class EVLiveClient {
   constructor(onToolCall) {
     this.ws = null;
-    this.onToolCall = onToolCall;
     this.currentModel = 'models/gemini-3.1-flash-live-preview'; 
 
     // Initialize standard Mac Speaker Output (24kHz is standard for Gemini Audio)
@@ -88,6 +87,113 @@ export class EVLiveClient {
     console.log('Configuration sent');
   }
 
+  // 🛠️ Handle incoming tool requests from E.V.
+  async onToolCall(name, args) {
+    if (name === 'initiate_shutdown') {
+      console.log('\n🔴 Shutdown sequence initiated by E.V...');
+      this.pendingShutdown = true;
+      return { status: "success", message: "System ready to power off." };
+    }
+
+    if (name === 'switch_model') {
+      const isPro = args.targetModel === 'pro';
+      this.currentModel = isPro ? 'models/gemini-1.5-pro' : 'models/gemini-1.5-flash';
+      console.log(`\n🔄 Switching E.V. engine to: ${this.currentModel}`);
+      
+      this.ws.close();
+      setTimeout(() => this.connect(), 500); 
+      
+      return { status: "success", message: `Engine swapped to ${this.currentModel}.` };
+    }
+
+    // 📝 WRITE / UPDATE FILE
+    if (name === 'writeWorkspaceFile') {
+      try {
+        // SAFETY: Resolve the absolute path and ensure it stays inside WORKSPACE_DIR
+        const safePath = path.resolve(WORKSPACE_DIR, args.filename);
+        if (!safePath.startsWith(WORKSPACE_DIR)) {
+          return { status: "error", message: "Access denied. You can only modify files in the workspace directory." };
+        }
+        
+        // Create the workspace folder if it doesn't exist yet, then write the file
+        await fs.mkdir(WORKSPACE_DIR, { recursive: true });
+        await fs.writeFile(safePath, args.content, 'utf-8');
+        
+        console.log(`\n📝 E.V. saved file: ${args.filename}`);
+        return { status: "success", message: `Successfully wrote to ${args.filename}` };
+      } catch (err) {
+        return { status: "error", message: `Failed to write file: ${err.message}` };
+      }
+    }
+
+    // 🗑️ DELETE FILE
+    if (name === 'deleteWorkspaceFile') {
+      try {
+        // SAFETY: Same path validation
+        const safePath = path.resolve(WORKSPACE_DIR, args.filename);
+        if (!safePath.startsWith(WORKSPACE_DIR)) {
+          return { status: "error", message: "Access denied." };
+        }
+        
+        await fs.unlink(safePath);
+        console.log(`\n🗑️ E.V. deleted file: ${args.filename}`);
+        return { status: "success", message: `Successfully deleted ${args.filename}` };
+      } catch (err) {
+        return { status: "error", message: `Failed to delete file: ${err.message}` };
+      }
+    }
+
+    // 📖 READ FILE (This allows her to "edit" by reading first, then overwriting)
+    if (name === 'readWorkspaceFile') {
+      try {
+        const safePath = path.resolve(WORKSPACE_DIR, args.filename);
+        if (!safePath.startsWith(WORKSPACE_DIR)) {
+          return { status: "error", message: "Access denied." };
+        }
+        
+        const content = await fs.readFile(safePath, 'utf-8');
+        console.log(`\n📖 E.V. read file: ${args.filename}`);
+        return { status: "success", content: content };
+      } catch (err) {
+        return { status: "error", message: `Failed to read file: ${err.message}` };
+      }
+    }
+
+    // 📁 CREATE FOLDER
+    if (name === 'createWorkspaceFolder') {
+      try {
+        const safePath = path.resolve(WORKSPACE_DIR, args.folderName);
+        if (!safePath.startsWith(WORKSPACE_DIR)) {
+          return { status: "error", message: "Access denied." };
+        }
+        
+        await fs.mkdir(safePath, { recursive: true });
+        console.log(`\n📁 E.V. created folder: ${args.folderName}`);
+        return { status: "success", message: `Folder ${args.folderName} created successfully.` };
+      } catch (err) {
+        return { status: "error", message: `Failed to create folder: ${err.message}` };
+      }
+    }
+    
+    return { status: "error", message: `Tool ${name} not found.` };
+  }
+
+  // 📤 Send the tool result back to the API so E.V. knows it worked
+  sendToolResponse(id, name, response) {
+    if (this.ws && this.ws.readyState === 1) { // 1 = WebSocket.OPEN
+      const message = {
+        toolResponse: {
+          functionResponses: [{
+            id: id,
+            name: name,
+            response: response
+          }]
+        }
+      };
+      this.ws.send(JSON.stringify(message));
+    }
+  }
+
   async handleServerMessage(message) {
     if (message.serverContent?.modelTurn?.parts) {
       this.isMuted = true; // 🔇 Mute microphone
@@ -110,6 +216,12 @@ export class EVLiveClient {
     if (message.serverContent?.turnComplete) {
       console.log('✅ E.V. finished responding.\n');
       this.isMuted = false; // 🎤 Unmute microphone
+
+      // ⚡ Kill the process if the shutdown flag was tripped
+      if (this.pendingShutdown) {
+        console.log('⚡ E.V. is offline.');
+        process.exit(0); 
+      }
     }
   }
 
@@ -123,23 +235,6 @@ export class EVLiveClient {
         // You could add logic here to write the next chunk if you queue them, 
         // but for now, just letting it drain often resolves the severe stutter.
       });
-    }
-  }
-
-  sendToolResponse(id, name, result) {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      const toolResponseMessage = {
-        toolResponse: {
-          functionResponses: [
-            {
-              name: name,
-              response: { result: result },
-              id: id
-            }
-          ]
-        }
-      };
-      this.ws.send(JSON.stringify(toolResponseMessage));
     }
   }
 
@@ -163,6 +258,7 @@ export class EVLiveClient {
 
 // Start streaming microphone input to Gemini
   startMicrophoneStream() {
+    if (this.mic) return;
     console.log("🎤 Microphone active. Start speaking...");
     
     // Capture from SoX and pipe to Gemini
