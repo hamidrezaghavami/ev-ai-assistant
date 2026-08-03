@@ -13,7 +13,7 @@ export class EVLiveClient {
   constructor(onToolCall) {
     this.ws = null;
     this.onToolCall = onToolCall;
-    this.currentModel = 'models/gemini-2.5-flash'; 
+    this.currentModel = 'models/gemini-3.1-flash-live-preview'; 
   }
 
   connect() {
