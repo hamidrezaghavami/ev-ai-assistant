@@ -7,14 +7,15 @@ import { evToolsDeclaration } from '../tools/schemas.js';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
-const URI = `wss://${HOST}/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${API_KEY}`;
+// 1. UPDATE: Live API requires the v1beta endpoint
+const URI = `wss://${HOST}/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${API_KEY}`;
 
 export class EVLiveClient {
   constructor(onToolCall) {
     this.ws = null;
     this.onToolCall = onToolCall;
-    // Set to a valid native audio Live API model
-    this.currentModel = 'models/gemini-3.1-flash-live-preview';
+    // 2. UPDATE: Use the current model string supported for Live API WebSocket
+    this.currentModel = 'models/gemini-3.1-flash-live-preview'; 
   }
 
   connect() {
@@ -39,10 +40,8 @@ export class EVLiveClient {
     this.ws.on('error', (err) => console.error('❌ WebSocket Error:', err));
   }
 
-  // Hot-swapping model engine is disabled because the Live API currently only supports the 2.5 Flash architecture.
-  // E.V. can instead use a tool call to query a standard Pro model in the background if deep reasoning is needed.
-
   sendInitialSetup() {
+    // 3. UPDATE: Fixed configuration payload schema
     const setupMessage = {
       setup: {
         model: this.currentModel,
@@ -50,7 +49,7 @@ export class EVLiveClient {
           responseModalities: ['AUDIO', 'TEXT'],
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: 'Puck' }
+              prebuiltVoiceConfig: { voiceName: 'Kore' }
             }
           }
         },
@@ -61,11 +60,13 @@ export class EVLiveClient {
             }
           ]
         },
-        tools: evToolsDeclaration
+        // Assuming evToolsDeclaration is an array of tool objects.
+        tools: evToolsDeclaration 
       }
     };
 
     this.ws.send(JSON.stringify(setupMessage));
+    console.log('Configuration sent');
   }
 
   async handleServerMessage(message) {
@@ -75,9 +76,7 @@ export class EVLiveClient {
           const { name, args, id } = part.functionCall;
           console.log(`🛠️ E.V. action requested: ${name}`, args);
 
-          // Route the tool call to the handler passed into the constructor
           const result = await this.onToolCall(name, args);
-
           this.sendToolResponse(id, name, result);
         }
       }
@@ -86,17 +85,19 @@ export class EVLiveClient {
 
   sendToolResponse(id, name, result) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      const toolResponse = {
+      // 4. UPDATE: Format the Tool Response exactly as BidiGenerateContentToolResponse
+      const toolResponseMessage = {
         toolResponse: {
           functionResponses: [
             {
-              response: { output: result },
+              name: name, // Provide the function name
+              response: { result: result }, // Use "result" property for the return data
               id: id
             }
           ]
         }
       };
-      this.ws.send(JSON.stringify(toolResponse));
+      this.ws.send(JSON.stringify(toolResponseMessage));
     }
   }
 }
