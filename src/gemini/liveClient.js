@@ -15,7 +15,7 @@ export class EVLiveClient {
     this.ws = null;
     this.onToolCall = onToolCall;
     // 2. UPDATE: Use the current model string supported for Live API WebSocket
-    this.currentModel = 'models/gemini-3.1-flash-live-preview'; 
+    this.currentModel = 'models/gemini-2.0-flash-exp'; 
   }
 
   connect() {
