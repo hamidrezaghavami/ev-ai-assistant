@@ -13,8 +13,8 @@ export class EVLiveClient {
   constructor(onToolCall) {
     this.ws = null;
     this.onToolCall = onToolCall;
-    // Default model engine on boot
-    this.currentModel = 'models/gemini-3.6-flash';
+    // Set to a valid native audio Live API model
+    this.currentModel = 'models/gemini-2.5-flash-native-audio-preview-12-2025';
   }
 
   connect() {
@@ -39,18 +39,8 @@ export class EVLiveClient {
     this.ws.on('error', (err) => console.error('❌ WebSocket Error:', err));
   }
 
-  // Hot-swap model engine and re-establish WebSocket connection
-  switchEngine(target) {
-    const isPro = target.toLowerCase().includes('pro');
-    this.currentModel = isPro ? 'models/gemini-3.1-pro' : 'models/gemini-3.6-flash';
-    
-    console.log(`🔄 Switching E.V. engine to ${this.currentModel}...`);
-    if (this.ws) {
-      this.ws.close();
-    }
-    this.connect();
-    return `Engine successfully switched to ${isPro ? '3.1 Pro' : '3.6 Flash'}.`;
-  }
+  // Hot-swapping model engine is disabled because the Live API currently only supports the 2.5 Flash architecture.
+  // E.V. can instead use a tool call to query a standard Pro model in the background if deep reasoning is needed.
 
   sendInitialSetup() {
     const setupMessage = {
@@ -60,7 +50,7 @@ export class EVLiveClient {
           responseModalities: ['AUDIO', 'TEXT'],
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: 'Ursa' }
+              prebuiltVoiceConfig: { voiceName: 'Puck' }
             }
           }
         },
@@ -85,12 +75,8 @@ export class EVLiveClient {
           const { name, args, id } = part.functionCall;
           console.log(`🛠️ E.V. action requested: ${name}`, args);
 
-          let result;
-          if (name === 'switchModel') {
-            result = this.switchEngine(args.targetModel);
-          } else {
-            result = await this.onToolCall(name, args);
-          }
+          // Route the tool call to the handler passed into the constructor
+          const result = await this.onToolCall(name, args);
 
           this.sendToolResponse(id, name, result);
         }
