@@ -4,7 +4,8 @@ so it can invoke these local handlers.
 */
 import WebSocket from 'ws';
 import { evToolsDeclaration } from '../tools/schemas.js';
-import { Decibri, DecibriOutput } from 'decibri';
+import pkg from 'decibri';
+const { Decibri, DecibriOutput } = pkg;
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
