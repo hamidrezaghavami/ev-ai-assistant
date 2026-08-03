@@ -1,0 +1,20 @@
+{
+  "name": "ev-ai-assistant",
+  "version": "1.0.0",
+  "description": "ai assistant E.V. Enhanced Vision inspired by Spider-Man Brand New Day movie",
+  "homepage": "https://github.com/hamidrezaghavami/ev-ai-assistant#readme",
+  "bugs": {
+    "url": "https://github.com/hamidrezaghavami/ev-ai-assistant/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hamidrezaghavami/ev-ai-assistant.git"
+  },
+  "license": "UNLICENSED",
+  "author": "HamidReza Ghavami",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

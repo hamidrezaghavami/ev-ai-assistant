@@ -1,0 +1,32 @@
+# Dependencies & Package Managers
+node_modules/
+**/node_modules/
+.pnpm-store/
+.yarn/
+
+# Environment Variables & Secrets
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+
+# Prisma Artifacts
+.prisma/
+**/.prisma/
+
+# Logs & Diagnostics
+*.log
+**/*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS & IDE Files
+.DS_Store
+Thumbs.db
+.vscode/
+**/.vscode/
+.idea/
+**/.idea/

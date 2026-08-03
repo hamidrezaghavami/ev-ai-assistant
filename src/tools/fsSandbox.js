@@ -1,0 +1,1 @@
+// Sandboxed file manager (desktop only)

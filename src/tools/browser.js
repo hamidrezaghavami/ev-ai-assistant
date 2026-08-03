@@ -1,0 +1,1 @@
+// macOS AppleScript tab controller
