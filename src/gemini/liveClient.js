@@ -100,7 +100,15 @@ export class EVLiveClient {
         
         if (part.inlineData && part.inlineData.mimeType.startsWith('audio/')) {
           const audioBuffer = Buffer.from(part.inlineData.data, 'base64');
-          this.speaker.write(audioBuffer);
+
+          this.audioQueue = this.audioQueue || [];
+          this.audioQueue.push(audioBuffer);
+          
+          // Wait until we have 5 chunks before playing
+          if (this.audioQueue.length >= 5) {
+            this.speaker.write(Buffer.concat(this.audioQueue));
+            this.audioQueue = [];
+          }
         }
       }
     }
