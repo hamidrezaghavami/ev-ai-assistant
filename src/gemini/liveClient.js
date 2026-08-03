@@ -166,10 +166,10 @@ export class EVLiveClient {
         
         const message = {
           realtimeInput: {
-            mediaChunks: [{
+            audio: {
               mimeType: "audio/pcm;rate=16000",
               data: base64Audio
-            }]
+            }
           }
         };
         this.ws.send(JSON.stringify(message));
