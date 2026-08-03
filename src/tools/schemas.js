@@ -5,10 +5,10 @@ export const evToolsDeclaration = [
         name: 'switchModel',
         description: 'Switch the underlying AI engine between 3.6 Flash (fast) and 3.1 Pro (advanced reasoning/code).',
         parameters: {
-          type: 'OBJECT',
+          type: 'object',
           properties: {
             targetModel: {
-              type: 'STRING',
+              type: 'string',
               description: 'The target model to switch to. Must be either "pro" or "flash".'
             }
           },
@@ -19,10 +19,10 @@ export const evToolsDeclaration = [
         name: 'writeWorkspaceFile',
         description: 'Write or update a text file inside the restricted workspace folder.',
         parameters: {
-          type: 'OBJECT',
+          type: 'object',
           properties: {
-            filename: { type: 'STRING', description: 'Name of the file (e.g. notes.txt)' },
-            content: { type: 'STRING', description: 'Text content to save.' }
+            filename: { type: 'string', description: 'Name of the file (e.g. notes.txt)' },
+            content: { type: 'string', description: 'Text content to save.' }
           },
           required: ['filename', 'content']
         }
@@ -31,9 +31,9 @@ export const evToolsDeclaration = [
         name: 'deleteWorkspaceFile',
         description: 'Delete a specific file inside the workspace folder.',
         parameters: {
-          type: 'OBJECT',
+          type: 'object',
           properties: {
-            filename: { type: 'STRING', description: 'Name of the file to remove.' }
+            filename: { type: 'string', description: 'Name of the file to remove.' }
           },
           required: ['filename']
         }
@@ -42,9 +42,9 @@ export const evToolsDeclaration = [
         name: 'openBrowserTab',
         description: 'Open a web page or social media search link in the default browser.',
         parameters: {
-          type: 'OBJECT',
+          type: 'object',
           properties: {
-            url: { type: 'STRING', description: 'The complete URL to open.' }
+            url: { type: 'string', description: 'The complete URL to open.' }
           },
           required: ['url']
         }
@@ -52,7 +52,7 @@ export const evToolsDeclaration = [
       {
         name: 'closeActiveBrowserTab',
         description: 'Close the currently active tab in the browser.',
-        parameters: { type: 'OBJECT', properties: {} }
+        parameters: { type: 'object', properties: {} }
       }
     ]
   }

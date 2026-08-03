@@ -3,6 +3,7 @@ This file acts as the router. When Gemini sends a tool request,
 this dispatcher executes the safe local function and returns the output back
 to the model.
 */
+import 'dotenv/config';
 import { initWorkspace, writeWorkspaceFile, readWorkspaceFile, deleteWorkspaceFile } from './tools/fsSandbox.js';
 import { openBrowserTab, closeActiveBrowserTab } from './tools/browser.js';
 import { evToolsDeclaration } from './tools/schemas.js';
@@ -15,13 +16,15 @@ const toolMap = {
   readWorkspaceFile: async (args) => await readWorkspaceFile(args.filename),
   deleteWorkspaceFile: async (args) => await deleteWorkspaceFile(args.filename),
   openBrowserTab: async (args) => await openBrowserTab(args.url),
-  closeActiveBrowserTab: async () => await closeActiveBrowserTab()
+  closeActiveBrowserTab: async () => await closeActiveBrowserTab(),
+  // Informative fallback for switchModel if called
+  switchModel: async (args) => `Model switching to ${args.targetModel} is logged.`
 };
 
 export async function executeToolCall(functionName, args) {
   const handler = toolMap[functionName];
   if (!handler) return `Error: Unknown tool ${functionName}`;
-  
+
   try {
     return await handler(args);
   } catch (error) {

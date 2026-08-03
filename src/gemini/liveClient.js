@@ -7,15 +7,13 @@ import { evToolsDeclaration } from '../tools/schemas.js';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
-// 1. UPDATE: Live API requires the v1beta endpoint
 const URI = `wss://${HOST}/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${API_KEY}`;
 
 export class EVLiveClient {
   constructor(onToolCall) {
     this.ws = null;
     this.onToolCall = onToolCall;
-    // 2. UPDATE: Use the current model string supported for Live API WebSocket
-    this.currentModel = 'models/gemini-2.0-flash-exp'; 
+    this.currentModel = 'models/gemini-2.5-flash'; 
   }
 
   connect() {
@@ -32,21 +30,29 @@ export class EVLiveClient {
     });
 
     this.ws.on('message', async (data) => {
-      const response = JSON.parse(data.toString());
-      await this.handleServerMessage(response);
+      try {
+        const response = JSON.parse(data.toString());
+        await this.handleServerMessage(response);
+      } catch (e) {
+        console.error('❌ Error parsing message:', e);
+      }
     });
 
-    this.ws.on('close', () => console.log('🔌 Connection closed.'));
+    // UPDATE: Expose the hidden disconnect reason from the server
+    this.ws.on('close', (code, reason) => {
+      console.log(`🔌 Connection closed. Code: ${code}, Reason: ${reason.toString() || 'None'}`);
+    });
+    
     this.ws.on('error', (err) => console.error('❌ WebSocket Error:', err));
   }
 
   sendInitialSetup() {
-    // 3. UPDATE: Fixed configuration payload schema
     const setupMessage = {
       setup: {
         model: this.currentModel,
         generationConfig: {
-          responseModalities: ['AUDIO', 'TEXT'],
+          // UPDATE: Removed 'TEXT'. Some Live models reject dual modalities.
+          responseModalities: ['AUDIO'],
           speechConfig: {
             voiceConfig: {
               prebuiltVoiceConfig: { voiceName: 'Kore' }
@@ -60,8 +66,8 @@ export class EVLiveClient {
             }
           ]
         },
-        // Assuming evToolsDeclaration is an array of tool objects.
-        tools: evToolsDeclaration 
+        // UPDATE: Defensively ensure tools is always an array to prevent 400 Bad Request
+        tools: Array.isArray(evToolsDeclaration) ? evToolsDeclaration : [evToolsDeclaration]
       }
     };
 
@@ -85,13 +91,12 @@ export class EVLiveClient {
 
   sendToolResponse(id, name, result) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      // 4. UPDATE: Format the Tool Response exactly as BidiGenerateContentToolResponse
       const toolResponseMessage = {
         toolResponse: {
           functionResponses: [
             {
-              name: name, // Provide the function name
-              response: { result: result }, // Use "result" property for the return data
+              name: name,
+              response: { result: result },
               id: id
             }
           ]

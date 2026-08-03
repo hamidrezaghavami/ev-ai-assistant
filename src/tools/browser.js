@@ -2,20 +2,18 @@
 Native AppleScript execution through Node's child_process
 to control browser windows without extra dependencies.
 */
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export async function openBrowserTab(url) {
-  // Uses macOS native 'open' to launch URL in default browser
-  const command = `open "${url}"`;
-  await execAsync(command);
+  // execFile avoids shell execution, preventing command injection
+  await execFileAsync('open', [url]);
   return `Opened URL: ${url}`;
 }
 
 export async function closeActiveBrowserTab() {
-  // AppleScript targeting the frontmost browser tab (Safari/Chrome default)
   const script = `
     tell application "System Events"
       set frontApp to name of first application process whose frontmost is true
@@ -24,6 +22,6 @@ export async function closeActiveBrowserTab() {
       end if
     end tell
   `;
-  await execAsync(`osascript -e '${script}'`);
+  await execFileAsync('osascript', ['-e', script]);
   return 'Closed active browser tab.';
 }

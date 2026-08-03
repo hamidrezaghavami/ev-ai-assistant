@@ -7,16 +7,17 @@ import fs from 'fs/promises';
 import path from 'path';
 import { WORKSPACE_DIR } from '../config.js';
 
-// Validate path is strictly inside the sandbox
+// Strictly validate that path remains inside the sandbox boundary
 function resolveSafePath(relativePath) {
-  const safePath = path.normalize(path.join(WORKSPACE_DIR, relativePath));
-  if (!safePath.startsWith(WORKSPACE_DIR)) {
+  const safePath = path.resolve(WORKSPACE_DIR, relativePath);
+  const relative = path.relative(WORKSPACE_DIR, safePath);
+
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
     throw new Error('Access Denied: Path is outside the authorized E.V. workspace.');
   }
   return safePath;
 }
 
-// Ensure workspace directory exists on startup
 export async function initWorkspace() {
   await fs.mkdir(WORKSPACE_DIR, { recursive: true });
 }
