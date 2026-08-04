@@ -56,9 +56,9 @@ export class EVLiveClient {
     this.ws.on('open', () => {
       console.log(`⚡ Connected to Gemini Live API using engine: [${this.currentModel}]`);
       this.sendInitialSetup();
-
-      // Start listening to your microphone immediately
       this.startMicrophoneStream();
+
+      this.sendTextMessage("Hello E.V., please create a file named test.md in my workspace and write a joke in it.");
     });
 
     this.ws.on('message', async (data) => {
