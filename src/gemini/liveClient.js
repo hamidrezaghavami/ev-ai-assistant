@@ -362,34 +362,41 @@ export class EVLiveClient {
     if (this.mic) return;
     console.log("🎤 Microphone active. Start speaking...");
     
-    // Capture from SoX and pipe to Gemini
-    this.mic = record.record({
-      sampleRate: 16000,
-      channels: 1,
-      threshold: 0,
-      recordProgram: '/opt/homebrew/bin/rec',
-      audioType: 'raw'
-    });
+    // 1. Drop the wrapper and spawn the raw OS process directly
+    this.mic = spawn('/opt/homebrew/bin/rec', [
+      '-q',            // Quiet mode
+      '-t', 'raw',     // Raw audio format (no WAV headers)
+      '-r', '16000',   // 16kHz sample rate required by Gemini
+      '-e', 'signed',  // Signed integer encoding
+      '-b', '16',      // 16-bit depth
+      '-c', '1',       // Mono channel
+      '-'              // Pipe directly to standard output
+    ]);
 
-    this.mic.stream().on('data', (data) => {
-      // 🔇 Ignore mic input while E.V. is speaking to prevent echo loops
+    this.mic.stdout.on('data', (data) => {
       if (this.isMuted) return;
-
-      process.stdout.write('.');
+      
+      process.stdout.write('.'); 
       
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         const base64Audio = data.toString('base64');
         
+        // 2. CRITICAL: Use mediaChunks array instead of audio object
         const message = {
           realtimeInput: {
-            audio: {
+            mediaChunks: [{
               mimeType: "audio/pcm;rate=16000",
               data: base64Audio
-            }
+            }]
           }
         };
         this.ws.send(JSON.stringify(message));
       }
+    });
+
+    // Catch any native recording errors
+    this.mic.stderr.on('data', (err) => {
+      console.error(`\n❌ Mic error: ${err}`);
     });
   }
 }
