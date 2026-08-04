@@ -20,6 +20,18 @@ export const evToolsDeclaration = [
         description: "Shuts down the E.V. system. Call this when Hamidreza tells you to sleep, shut down, or go offline. Say a cool, brief sign-off like 'Going dark' or 'System powering down' before executing."
       },
       {
+        name: 'create_file',
+        description: 'Creates a new file. Only .md, .json, or .txt extensions are allowed.',
+        parameters: {
+          type: 'object',
+          properties: {
+            filename: { type: 'string', description: 'Name of the file including extension (e.g., notes.md)' },
+            content: { type: 'string', description: 'The text content to write inside the file' }
+          },
+          required: ['filename', 'content']
+        }
+      },
+      {
         name: 'readWorkspaceFile',
         description: 'Read the contents of a file inside the workspace so you can view it before editing.',
         parameters: {

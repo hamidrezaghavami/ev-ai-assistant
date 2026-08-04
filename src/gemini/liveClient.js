@@ -6,6 +6,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import { exec } from 'child_process';
+import fs from 'fs';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
@@ -159,6 +160,23 @@ export class EVLiveClient {
         return { status: "success", message: `Successfully deleted ${args.filename}` };
       } catch (err) {
         return { status: "error", message: `Failed to delete file: ${err.message}` };
+      }
+    }
+
+    // 📄 CREATE FILE (Locked to .md, .json, .txt)
+    if (name === 'create_file') {
+      try {
+        const ext = args.filename.split('.').pop().toLowerCase();
+        if (!['md', 'json', 'txt', 'text'].includes(ext)) {
+          return { status: "error", message: "Denied. I can only create .md, .json, or .txt files." };
+        }
+
+        fs.writeFileSync(args.filename, args.content);
+        console.log(`\n📄 E.V. created file: ${args.filename}`);
+        
+        return { status: "success", message: `File ${args.filename} created successfully.` };
+      } catch (err) {
+        return { status: "error", message: `Failed to create file: ${err.message}` };
       }
     }
 
