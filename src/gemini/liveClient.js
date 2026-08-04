@@ -316,6 +316,7 @@ export class EVLiveClient {
           this.playAudioSafe(audioBuffer);
         }
         if (part.text) {
+          console.log(`\n💬 E.V. says: ${part.text}`);
           sendToHUD('transcript', { text: part.text });
         }
       }
