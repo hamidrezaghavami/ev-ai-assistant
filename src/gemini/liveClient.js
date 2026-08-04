@@ -57,12 +57,9 @@ export class EVLiveClient {
     this.ws.on('open', () => {
       console.log(`⚡ Connected to Gemini Live API using engine: [${this.currentModel}]`);
       this.sendInitialSetup();
-      // this.startMicrophoneStream();
-      
-      setTimeout(() => {
-        console.log('\n🤖 Sending text override to test automation...');
-        this.sendTextMessage("Spider-Man here. Please create a file named test.txt in my workspace with the text 'Automation works perfectly.'");
-      }, 3000);
+
+      this.startMicrophoneStream();
+      this.setupWalkieTalkie();
     });
 
     this.ws.on('message', async (data) => {
@@ -359,6 +356,46 @@ export class EVLiveClient {
       this.ws.send(JSON.stringify(message));
       console.log(`📤 Sent text prompt: "${text}"`);
     }
+  }
+
+  setupWalkieTalkie() {
+    // Start with the mic strictly muted
+    this.isMuted = true; 
+    
+    // Listen to raw keyboard inputs in the terminal
+    process.stdin.setRawMode(true);
+    process.stdin.resume();
+    
+    console.log("\n📻 WALKIE-TALKIE MODE ACTIVE:");
+    console.log("   - Press [SPACEBAR] to open the mic and talk.");
+    console.log("   - Press [SPACEBAR] again to send the audio to E.V.");
+    console.log("   - Press [Ctrl + C] to quit the app.\n");
+
+    process.stdin.on('data', (key) => {
+      // Keep Ctrl+C working to quit the app safely
+      if (key.toString() === '\u0003') {
+        console.log("Shutting down...");
+        process.exit();
+      }
+
+      // When you press Spacebar
+      if (key.toString() === ' ') {
+        this.isMuted = !this.isMuted;
+
+        if (!this.isMuted) {
+          console.log("\n🟢 [MIC OPEN] E.V. is listening...");
+          sendToHUD('log', { message: '🎙️ MIC OPEN - Receiving audio...' });
+        } else {
+          console.log("\n🔴 [MIC CLOSED] Sending audio to E.V...");
+          sendToHUD('log', { message: '🔒 MIC CLOSED - Processing data...' });
+          
+          // 👈 THIS IS THE MAGIC SIGNAL! It tells Gemini you are done speaking.
+          if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ clientContent: { turnComplete: true } }));
+          }
+        }
+      }
+    });
   }
 
 // Start streaming microphone input to Gemini
