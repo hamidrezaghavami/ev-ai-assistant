@@ -96,13 +96,14 @@ export class EVLiveClient {
             }
           ]
         },
-        // Defensively ensure tools is always an array to prevent 400 Bad Request
-        tools: Array.isArray(evToolsDeclaration) ? evToolsDeclaration : [evToolsDeclaration]
+        tools: [{
+          functionDeclarations: Array.isArray(evToolsDeclaration) ? evToolsDeclaration : [evToolsDeclaration]
+        }]
       }
     };
 
     this.ws.send(JSON.stringify(setupMessage));
-    console.log('Configuration sent');
+    console.log('✅ Configuration sent');
   }
 
   // 🛠️ Handle incoming tool requests from E.V.
@@ -362,49 +363,48 @@ export class EVLiveClient {
     if (this.mic) return;
     console.log("🎤 Microphone active. Start speaking...");
     
-    // Spawn the raw SoX process directly
     this.mic = spawn('/opt/homebrew/bin/rec', [
-      '-q',            
-      '-t', 'raw',     
-      '-r', '16000',   
-      '-e', 'signed',  
-      '-b', '16',      
-      '-c', '1',       
-      '-'              
+      '-q', '-t', 'raw', '-r', '16000', '-e', 'signed', '-b', '16', '-c', '1', '-'
     ]);
+
+    // 🪣 Create a holding tank for raw audio bytes
+    let audioBuffer = Buffer.alloc(0); 
 
     this.mic.stdout.on('data', (data) => {
       if (this.isMuted) return;
       
-      let maxVolume = 0;
-      for (let i = 0; i < data.length; i += 2) {
-        const val = Math.abs(data.readInt16LE(i));
-        if (val > maxVolume) maxVolume = val;
-      }
+      // 1. Pour new incoming audio into the holding tank
+      audioBuffer = Buffer.concat([audioBuffer, data]);
 
-      // 1. Only print a dot if you are actually talking loudly
-      if (maxVolume >= 1500) {
-        process.stdout.write('.'); 
-      }
-      
-      // 2. 🚨 CRITICAL FIX: No more 'return' statement! 
-      // We stream ALL audio (including silence) so Gemini knows when you finish speaking.
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        const base64Audio = data.toString('base64');
-        
-        const message = {
-          realtimeInput: {
-            audio: {
-              mimeType: "audio/pcm;rate=16000",
-              data: base64Audio
+      // 2. ONLY extract and send audio when we have a perfect, even block of 4096 bytes
+      // This guarantees we never split a 16-bit (2-byte) sample in half!
+      while (audioBuffer.length >= 4096) {
+        const chunk = audioBuffer.slice(0, 4096);
+        audioBuffer = audioBuffer.slice(4096); // Keep any leftover bytes for the next round
+
+        // 3. Volume Check (for visual dots only)
+        let maxVolume = 0;
+        for (let i = 0; i < chunk.length; i += 2) {
+          const val = Math.abs(chunk.readInt16LE(i));
+          if (val > maxVolume) maxVolume = val;
+        }
+        if (maxVolume >= 1500) process.stdout.write('.');
+
+        // 4. Send the perfectly aligned chunk to Gemini
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          const message = {
+            realtimeInput: {
+              audio: {
+                mimeType: "audio/pcm;rate=16000",
+                data: chunk.toString('base64')
+              }
             }
-          }
-        };
-        this.ws.send(JSON.stringify(message));
+          };
+          this.ws.send(JSON.stringify(message));
+        }
       }
     });
 
-    // 🤫 Filter out the harmless Mac sample rate warning so it doesn't spam your terminal
     this.mic.stderr.on('data', (err) => {
       const errorMsg = err.toString();
       if (!errorMsg.includes('WARN')) {
