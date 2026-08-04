@@ -58,6 +58,12 @@ export class EVLiveClient {
       console.log(`⚡ Connected to Gemini Live API using engine: [${this.currentModel}]`);
       this.sendInitialSetup();
       this.startMicrophoneStream();
+      
+      // 🕵️ THE PROOF: Bypass the mic and text her a command 3 seconds after boot
+      setTimeout(() => {
+        console.log('\n🤖 Sending text override to test automation...');
+        this.sendTextMessage("Spider-Man here. Please create a file named test.txt in my workspace with the text 'Automation works perfectly.'");
+      }, 3000);
     });
 
     this.ws.on('message', async (data) => {
