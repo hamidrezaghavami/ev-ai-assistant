@@ -366,7 +366,7 @@ export class EVLiveClient {
     this.mic = record.record({
       sampleRate: 16000,
       channels: 1,
-      threshold: 0,
+      threshold: 0.5,
       recordProgram: 'rec',
       audioType: 'raw'
     });
