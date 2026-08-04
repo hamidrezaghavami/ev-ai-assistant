@@ -375,7 +375,8 @@ export class EVLiveClient {
       sampleRate: 16000,
       channels: 1,
       threshold: 0,
-      recordProgram: 'rec'
+      recordProgram: 'rec',
+      audioType: 'raw'
     });
 
     this.mic.stream().on('data', (data) => {
