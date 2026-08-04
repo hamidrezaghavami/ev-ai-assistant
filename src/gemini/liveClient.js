@@ -34,14 +34,16 @@ export class EVLiveClient {
     this.ws = null;
     this.currentModel = 'models/gemini-3.1-flash-live-preview'; 
 
-    // Initialize standard Mac Speaker Output (24kHz is standard for Gemini Audio)
-    this.speaker = new Speaker({
+    /* this.speaker = new Speaker({
       channels: 1,
       bitDepth: 16,
       sampleRate: 24000
     });
 
     this.speaker.setMaxListeners(0);
+    */
+
+    this.audioPlayer = spawn('sox', ['-q', '-t', 'raw', '-r', '24000', '-e', 'signed', '-b', '16', '-c', '1', '-', '-d']);
   }
 
   connect() {
@@ -332,15 +334,8 @@ export class EVLiveClient {
   }
 
   playAudioSafe(audioBuffer) {
-    // If the speaker buffer is full, it returns false. 
-    // We then wait for the 'drain' event before continuing.
-    const canWrite = this.speaker.write(audioBuffer);
-    
-    if (!canWrite) {
-      this.speaker.once('drain', () => {
-        // You could add logic here to write the next chunk if you queue them, 
-        // but for now, just letting it drain often resolves the severe stutter.
-      });
+    if (this.audioPlayer && this.audioPlayer.stdin) {
+      this.audioPlayer.stdin.write(audioBuffer);
     }
   }
 

@@ -21,7 +21,7 @@ export const evToolsDeclaration = [
       },
       {
         name: 'create_file',
-        description: 'Creates a new file. YOU MUST verbally ask the user for approval before calling this tool.',
+        description: 'Creates a new file in the user\'s workspace.',
         parameters: {
           type: 'object',
           properties: {
