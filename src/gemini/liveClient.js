@@ -6,7 +6,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import { exec } from 'child_process';
-import fs from 'fs';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
