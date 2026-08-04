@@ -366,14 +366,16 @@ export class EVLiveClient {
     this.mic = record.record({
       sampleRate: 16000,
       channels: 1,
-      threshold: 0.5,
-      recordProgram: 'rec',
+      threshold: 0,
+      recordProgram: '/opt/homebrew/bin/rec',
       audioType: 'raw'
     });
 
     this.mic.stream().on('data', (data) => {
       // 🔇 Ignore mic input while E.V. is speaking to prevent echo loops
       if (this.isMuted) return;
+
+      process.stdout.write('.');
       
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         const base64Audio = data.toString('base64');
