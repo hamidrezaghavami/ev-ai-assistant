@@ -1,11 +1,10 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import { evToolsDeclaration } from '../tools/schemas.js';
-import Speaker from 'speaker';
 import record from 'node-record-lpcm16';
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
-import { exec, execSync } from 'child_process';
+import { exec, execSync, spawn } from 'child_process';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
@@ -57,8 +56,6 @@ export class EVLiveClient {
       console.log(`⚡ Connected to Gemini Live API using engine: [${this.currentModel}]`);
       this.sendInitialSetup();
       this.startMicrophoneStream();
-
-      this.sendTextMessage("Hello E.V., please create a file named test.md in my workspace and write a joke in it.");
     });
 
     this.ws.on('message', async (data) => {
