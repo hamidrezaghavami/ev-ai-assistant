@@ -5,7 +5,7 @@ import record from 'node-record-lpcm16';
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
-import { exec } from 'child_process';
+import { exec, execSync } from 'child_process';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
@@ -162,7 +162,7 @@ export class EVLiveClient {
       }
     }
 
-    // 📄 CREATE FILE (Locked to .md, .json, .txt)
+    // 📄 CREATE FILE (Locked to .md, .json, .txt AND restricted to EV_Workspace)
     if (name === 'create_file') {
       try {
         const ext = args.filename.split('.').pop().toLowerCase();
@@ -170,9 +170,17 @@ export class EVLiveClient {
           return { status: "error", message: "Denied. I can only create .md, .json, or .txt files." };
         }
 
-        fs.writeFileSync(args.filename, args.content);
-        console.log(`\n📄 E.V. created file: ${args.filename}`);
+        // SAFETY: Resolve the absolute path and ensure it stays inside WORKSPACE_DIR
+        const safePath = path.resolve(WORKSPACE_DIR, args.filename);
+        if (!safePath.startsWith(WORKSPACE_DIR)) {
+          return { status: "error", message: "Access denied. You can only create files inside the EV_Workspace directory." };
+        }
+
+        // Create the workspace folder if it doesn't exist yet, then write the file
+        await fs.mkdir(WORKSPACE_DIR, { recursive: true });
+        await fs.writeFile(safePath, args.content, 'utf-8');
         
+        console.log(`\n📄 E.V. created file: ${safePath}`);
         return { status: "success", message: `File ${args.filename} created successfully.` };
       } catch (err) {
         return { status: "error", message: `Failed to create file: ${err.message}` };
@@ -211,20 +219,64 @@ export class EVLiveClient {
       }
     }
 
-    // 🌐 VISUAL WEB SEARCH
-    if (name === 'open_search_tab') {
+    // 🌐 OPEN BROWSER TAB
+    if (name === 'openBrowserTab') {
       try {
-        // Formats the query for a URL and opens it in the default Mac browser
-        const url = `https://www.google.com/search?q=${encodeURIComponent(args.query)}`;
-        exec(`open "${url}"`); 
+        // Opens the URL in your default Mac browser
+        exec(`open "${args.url}"`); 
         
-        console.log(`\n🌐 E.V. opened browser search for: ${args.query}`);
-        return { 
-          status: "success", 
-          message: "Search tab opened successfully. Now verbally explain the topic to him." 
-        };
+        console.log(`\n🌐 E.V. opened browser tab: ${args.url}`);
+        return { status: "success", message: `Successfully opened ${args.url}` };
       } catch (err) {
         return { status: "error", message: `Failed to open browser: ${err.message}` };
+      }
+    }
+
+    // 🚫 CLOSE ACTIVE BROWSER TAB
+    if (name === 'closeActiveBrowserTab') {
+      try {
+        // AppleScript to close the active tab in Chrome or Safari
+        const script = `
+          tell application "System Events"
+            if exists (processes where name is "Google Chrome") then
+              tell application "Google Chrome" to close active tab of front window
+            else if exists (processes where name is "Safari") then
+              tell application "Safari" to close current tab of front window
+            end if
+          end tell
+        `;
+        execSync(`osascript -e '${script}'`);
+        
+        console.log(`\n🚫 E.V. closed the active browser tab.`);
+        return { status: "success", message: "Tab closed successfully." };
+      } catch (err) {
+        return { status: "error", message: `Failed to close tab: ${err.message}` };
+      }
+    }
+
+    // 👁️ READ ACTIVE BROWSER TAB (So she can see it and explain it to you)
+    if (name === 'readActiveBrowserTab') {
+      try {
+        // AppleScript to extract the text content straight from the page
+        const script = `
+          tell application "System Events"
+            if exists (processes where name is "Google Chrome") then
+              tell application "Google Chrome" to execute front window's active tab javascript "document.body.innerText"
+            else if exists (processes where name is "Safari") then
+              tell application "Safari" to do JavaScript "document.body.innerText" in front document
+            else
+              return "Error: No supported browser running."
+            end if
+          end tell
+        `;
+        
+        const pageText = execSync(`osascript -e '${script}'`, { encoding: 'utf-8' });
+        console.log(`\n👁️ E.V. is reading the active browser tab...`);
+        
+        // Give her the first 15,000 characters so she doesn't get overwhelmed by massive pages
+        return { status: "success", content: pageText.substring(0, 15000) };
+      } catch (err) {
+        return { status: "error", message: `Failed to read tab. Ensure Chrome/Safari is open. Error: ${err.message}` };
       }
     }
     

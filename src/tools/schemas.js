@@ -21,7 +21,7 @@ export const evToolsDeclaration = [
       },
       {
         name: 'create_file',
-        description: 'Creates a new file. Only .md, .json, or .txt extensions are allowed.',
+        description: 'Creates a new file. YOU MUST verbally ask the user for approval before calling this tool.',
         parameters: {
           type: 'object',
           properties: {
@@ -63,6 +63,11 @@ export const evToolsDeclaration = [
           },
           required: ['folderName']
         }
+      },
+      {
+        name: 'readActiveBrowserTab',
+        description: 'Reads the text content of the currently active browser tab (Chrome or Safari) so you can explain what is on the screen to the user.',
+        parameters: { type: 'object', properties: {} }
       },
       {
         name: 'openBrowserTab',
