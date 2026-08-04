@@ -376,12 +376,24 @@ export class EVLiveClient {
     this.mic.stdout.on('data', (data) => {
       if (this.isMuted) return;
       
+      // 1. Calculate the peak volume of this specific audio chunk
+      let maxVolume = 0;
+      for (let i = 0; i < data.length; i += 2) {
+        // Read the 16-bit raw audio data
+        const val = Math.abs(data.readInt16LE(i));
+        if (val > maxVolume) maxVolume = val;
+      }
+
+      // 2. The Noise Gate: If the volume is under 1500, it is just background noise. 
+      // Ignore it completely so we don't spam E.V.'s brain.
+      if (maxVolume < 1500) return; 
+      
+      // If we made it here, you are actually talking!
       process.stdout.write('.'); 
       
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         const base64Audio = data.toString('base64');
         
-        // ⏪ REVERTED BACK TO AUDIO OBJECT (My bad!)
         const message = {
           realtimeInput: {
             audio: {
