@@ -1,4 +1,4 @@
-import WebSocket from 'ws';
+import WebSocket, { WebSocketServer } from 'ws';
 import { evToolsDeclaration } from '../tools/schemas.js';
 import Speaker from 'speaker';
 import record from 'node-record-lpcm16';
@@ -13,6 +13,22 @@ const URI = `wss://${HOST}/ws/google.ai.generativelanguage.v1beta.GenerativeServ
 
 // Locks E.V. strictly to ~/Desktop/Ed_Workspace on your Mac
 const WORKSPACE_DIR = path.resolve(os.homedir(), 'Desktop', 'EV_Workspace');
+
+// --- Start the local UI Server Handshake ---
+const wss = new WebSocketServer({ port: 8080 });
+let uiClient = null;
+
+wss.on('connection', (ws) => {
+  console.log('✅ Visual HUD Connected!');
+  uiClient = ws;
+});
+
+// Helper function to send data to the HUD
+function sendToHUD(type, payload) {
+  if (uiClient && uiClient.readyState === WebSocket.OPEN) {
+    uiClient.send(JSON.stringify({ type: type, ...payload }));
+  }
+}
 
 export class EVLiveClient {
   constructor(onToolCall) {
@@ -229,6 +245,9 @@ export class EVLiveClient {
         if (part.inlineData && part.inlineData.mimeType.startsWith('audio/')) {
           const audioBuffer = Buffer.from(part.inlineData.data, 'base64');
           this.playAudioSafe(audioBuffer);
+        }
+        if (part.text) {
+          sendToHUD('transcript', { text: part.text });
         }
       }
     }

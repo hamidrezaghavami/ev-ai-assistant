@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>E.V. Visual Interface</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+        
+        body {
+            background-color: #03060a;
+            color: #00ffff;
+            font-family: 'Share Tech Mono', monospace;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+            box-sizing: border-box;
+            /* Grid Background */
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        /* Scanline Overlay for the screen */
+        body::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .hud-container {
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.05);
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            grid-template-rows: 40px 1fr 100px;
+            gap: 15px;
+            padding: 15px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1px solid #00ffff;
+            padding-bottom: 5px;
+            text-shadow: 0 0 8px #00ffff;
+            letter-spacing: 2px;
+        }
+
+        /* The central visual area */
+        .main-display {
+            grid-column: 1;
+            grid-row: 2;
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            position: relative;
+            background: rgba(0, 10, 20, 0.5);
+            overflow: hidden;
+        }
+
+        /* The actual canvas element where we will draw diagrams */
+        #hologram-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Movie-style scanning laser */
+        .scanner {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 255, 255, 0.8);
+            box-shadow: 0 0 15px 2px #00ffff;
+            animation: scanline 4s linear infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes scanline {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+
+        /* Live speech transcription area */
+        .transcript-panel {
+            grid-column: 1;
+            grid-row: 3;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.8);
+        }
+
+        /* Side panel for system telemetry */
+        .telemetry-panel {
+            grid-column: 2;
+            grid-row: 2 / 4;
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            padding: 15px;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0, 20, 40, 0.2);
+        }
+
+        .status-block {
+            margin-bottom: 20px;
+        }
+
+        .status-line {
+            border-bottom: 1px dotted rgba(0, 255, 255, 0.3);
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #logs {
+            flex-grow: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .log-entry {
+            color: rgba(0, 255, 255, 0.7);
+            margin-bottom: 5px;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hud-container">
+        <div class="header">
+            <span>ARM SCAN RESULTS // VISUAL DATA LINK</span>
+            <span id="clock">00:00:00</span>
+        </div>
+        
+        <div class="main-display" id="visual-area">
+            <div class="scanner"></div>
+            <!-- We will command E.V. to draw on this canvas using JavaScript -->
+            <canvas id="hologram-canvas"></canvas>
+        </div>
+
+        <div class="transcript-panel" id="transcript-container">
+            > <span id="ev-transcript" style="margin-left: 10px;">Awaiting WebSocket connection...</span>
+        </div>
+        
+        <div class="telemetry-panel">
+            <div class="status-block">
+                <div class="status-line"><span>SYSTEM CORE:</span> <span>ONLINE</span></div>
+                <div class="status-line"><span>WS DATA LINK:</span> <span id="ws-status" style="color: red; text-shadow: 0 0 5px red;">DISCONNECTED</span></div>
+                <div class="status-line"><span>RENDER ENGINE:</span> <span>STANDBY</span></div>
+            </div>
+            
+            <div style="color: #fff; margin-bottom: 10px; border-bottom: 1px solid #00ffff;">LIVE TELEMETRY</div>
+            <div id="logs"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- Live Clock ---
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-US', { hour12: false });
+        }, 1000);
+
+        // --- Canvas Setup (Preparing for Data) ---
+        const canvas = document.getElementById('hologram-canvas');
+        const ctx = canvas.getContext('2d');
+        // Resize canvas to match container
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // --- WebSocket Handshake ---
+        const ws = new WebSocket('ws://localhost:8080');
+
+        ws.onopen = () => {
+            const statusEl = document.getElementById('ws-status');
+            statusEl.innerText = 'CONNECTED';
+            statusEl.style.color = '#00ffff';
+            statusEl.style.textShadow = '0 0 5px #00ffff';
+            document.getElementById('ev-transcript').innerText = 'Data link established. Awaiting input.';
+            addLog("WebSocket link verified.");
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            
+            if (data.type === 'transcript') {
+                document.getElementById('ev-transcript').innerText = data.text;
+            }
+            if (data.type === 'log') {
+                addLog(data.message);
+            }
+            // Future feature: if (data.type === 'draw_architecture') { renderArchitecture(data.nodes); }
+        };
+
+        ws.onclose = () => {
+            const statusEl = document.getElementById('ws-status');
+            statusEl.innerText = 'DISCONNECTED';
+            statusEl.style.color = 'red';
+            statusEl.style.textShadow = '0 0 5px red';
+            addLog("Connection lost.");
+        };
+
+        function addLog(msg) {
+            const logs = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerText = `> ${msg}`;
+            logs.appendChild(logEntry);
+            if (logs.children.length > 12) {
+                logs.removeChild(logs.firstChild);
+            }
+        }
+    </script>
+</body>
+</html>
