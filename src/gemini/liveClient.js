@@ -4,12 +4,15 @@ import Speaker from 'speaker';
 import record from 'node-record-lpcm16';
 import fs from 'fs/promises';
 import path from 'path';
+import os from 'os';
+import { exec } from 'child_process';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
 const URI = `wss://${HOST}/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${API_KEY}`;
 
-const WORKSPACE_DIR = path.resolve(process.cwd(), 'workspace');
+// Locks E.V. strictly to ~/Desktop/Ed_Workspace on your Mac
+const WORKSPACE_DIR = path.resolve(os.homedir(), 'Desktop', 'EV_Workspace');
 
 export class EVLiveClient {
   constructor(onToolCall) {
@@ -74,7 +77,7 @@ export class EVLiveClient {
         systemInstruction: {
           parts: [
             {
-              text: 'You are E.V. (Enhanced Vision), a highly capable AI assistant inspired by Spider-Man: Brand New Day. You speak concisely, intelligently, and clearly with a helpful female voice. If asked who made you or what your purpose is, you must state that you are a personal assistant made by your friendly neighborhood Spider-Man. Never say you were made by Google or refer to yourself as a large language model.'
+              text: 'You are E.V. (Enhanced Vision), a highly capable AI assistant inspired by Spider-Man: Brand New Day. You speak concisely, intelligently, and clearly with a helpful female voice. If asked who made you or what your purpose is, you must state that you are a personal assistant made by your friendly neighborhood Spider-Man. Never say you were made by Google or refer to yourself as a large language model. If asked to search for something or look something up, you MUST stop and ask exactly: "Can I proceed with permission, Spider-Man?". You must wait for him to reply with "yes" or "approved". Once approved, use the open_search_tab tool to show the search on his screen, and then verbally explain the topic to him.'
             }
           ]
         },
@@ -172,6 +175,23 @@ export class EVLiveClient {
         return { status: "success", message: `Folder ${args.folderName} created successfully.` };
       } catch (err) {
         return { status: "error", message: `Failed to create folder: ${err.message}` };
+      }
+    }
+
+    // 🌐 VISUAL WEB SEARCH
+    if (name === 'open_search_tab') {
+      try {
+        // Formats the query for a URL and opens it in the default Mac browser
+        const url = `https://www.google.com/search?q=${encodeURIComponent(args.query)}`;
+        exec(`open "${url}"`); 
+        
+        console.log(`\n🌐 E.V. opened browser search for: ${args.query}`);
+        return { 
+          status: "success", 
+          message: "Search tab opened successfully. Now verbally explain the topic to him." 
+        };
+      } catch (err) {
+        return { status: "error", message: `Failed to open browser: ${err.message}` };
       }
     }
     

@@ -13,7 +13,7 @@ Deep Research: Perform targeted web and social media queries, summarizing key in
 3. ### Movie-Style Visual UI (Dashboard):
 High-Tech Interface: A visual dashboard inspired by the movie HUD, featuring live processing status indicators, audio waveform visualizers, active task feeds, and telemetry logs.
 4. ### Continuous Voice Interaction:
-Live Audio Stream: Low-latency, two-way conversational voice streaming using Gemini's female voice profiles (e.g., Aoede or Kore via Gemini Live / Multimodal Live API).
+Live Audio Stream: Low-latency, two-way conversational voice streaming using Gemini's female voice profiles (Kore via Gemini Live / Multimodal Live API).
 
 # Design and Architecture:
 ```
@@ -51,12 +51,14 @@ ev-ai-assistant/
 ├── LICENSE
 ├── .gitignore
 ├── package.json
+├── .env
 └── src/
     ├── config.js          # Path configurations & constants
     ├── index.js           # Server entrypoint
     ├── tools/
     │   ├── fsSandbox.js   # Sandboxed file manager (desktop only)
     │   └── browser.js     # macOS AppleScript tab controller
+    │   └── schemas.js     # E.V. schemas work and instructions
     └── gemini/
         └── liveClient.js  # WebSocket / Gemini Multimodal Live client
 ```
