@@ -63,17 +63,6 @@ export class EVLiveClient {
       // this.startMicrophoneStream();
       // this.setupWalkieTalkie();
 
-      // ⌨️ INJECT TEXT COMMAND INSTEAD
-      setTimeout(() => {
-        console.log("🚀 Sending test text command...");
-        this.ws.send(JSON.stringify({
-          clientContent: {
-            turns: [{ role: "user", parts: [{ text: "E.V., create a file named test.text and write 'hello' inside it." }] }],
-            turnComplete: true
-          }
-        }));
-      }, 2000);
-
       // 💬 ADD TEXT CHAT TO TERMINAL
       const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
       
