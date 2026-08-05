@@ -365,11 +365,11 @@ export class EVLiveClient {
             console.log(`\n🚫 Blocked E.V. from running: ${call.name}`);
             result = "Error: User denied permission to execute this tool.";
           } else {
-            result = await this.onToolCall(call.name, call.args);
+            result = this.onToolCall(call.name, call.args);
           }
         } else {
           // 🟢 Safe tool! Auto-execute instantly
-          result = await this.onToolCall(call.name, call.args);
+          result = this.onToolCall(call.name, call.args);
         }
         
         // 2. Send the result back to E.V. so she knows it finished!
