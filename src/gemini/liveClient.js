@@ -342,6 +342,28 @@ export class EVLiveClient {
   }
 
   async handleServerMessage(message) {
+
+    // 🛠️ CATCH AND EXECUTE TOOL CALLS
+    if (message.toolCall) {
+      for (const call of message.toolCall.functionCalls) {
+        console.log(`\n⚙️ Executing E.V.'s command: ${call.name}`);
+        
+        // 1. Run the local logic you wrote earlier
+        const result = this.onToolCall(call.name, call.args);
+        
+        // 2. Send the result back to E.V. so she knows it finished!
+        this.ws.send(JSON.stringify({
+          toolResponse: {
+            functionResponses: [{
+              id: call.id,
+              name: call.name,
+              response: { result: result || "Success" }
+            }]
+          }
+        }));
+      }
+    }
+    
     if (message.serverContent?.modelTurn?.parts) {
       
       // 🚨 FIX: Auto-lock the mic the second E.V. takes action!
