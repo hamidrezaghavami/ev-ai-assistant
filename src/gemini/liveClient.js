@@ -264,9 +264,7 @@ export class EVLiveClient {
     // 🌐 OPEN BROWSER TAB
     if (name === 'openBrowserTab') {
       try {
-        // Opens the URL in your default Mac browser
         exec(`open "${args.url}"`); 
-        
         console.log(`\n🌐 E.V. opened browser tab: ${args.url}`);
         return { status: "success", message: `Successfully opened ${args.url}` };
       } catch (err) {
@@ -277,7 +275,6 @@ export class EVLiveClient {
     // 🚫 CLOSE ACTIVE BROWSER TAB
     if (name === 'closeActiveBrowserTab') {
       try {
-        // AppleScript to close the active tab in Chrome or Safari
         const script = `
           tell application "System Events"
             if exists (processes where name is "Google Chrome") then
@@ -288,7 +285,6 @@ export class EVLiveClient {
           end tell
         `;
         execSync(`osascript -e '${script}'`);
-        
         console.log(`\n🚫 E.V. closed the active browser tab.`);
         return { status: "success", message: "Tab closed successfully." };
       } catch (err) {
@@ -296,10 +292,9 @@ export class EVLiveClient {
       }
     }
 
-    // 👁️ READ ACTIVE BROWSER TAB (So she can see it and explain it to you)
+    // 👁️ READ ACTIVE BROWSER TAB 
     if (name === 'readActiveBrowserTab') {
       try {
-        // AppleScript to extract the text content straight from the page
         const script = `
           tell application "System Events"
             if exists (processes where name is "Google Chrome") then
@@ -315,7 +310,6 @@ export class EVLiveClient {
         const pageText = execSync(`osascript -e '${script}'`, { encoding: 'utf-8' });
         console.log(`\n👁️ E.V. is reading the active browser tab...`);
         
-        // Give her the first 15,000 characters so she doesn't get overwhelmed by massive pages
         return { status: "success", content: pageText.substring(0, 15000) };
       } catch (err) {
         return { status: "error", message: `Failed to read tab. Ensure Chrome/Safari is open. Error: ${err.message}` };
@@ -363,7 +357,7 @@ export class EVLiveClient {
         }));
       }
     }
-    
+
     if (message.serverContent?.modelTurn?.parts) {
       
       // 🚨 FIX: Auto-lock the mic the second E.V. takes action!
