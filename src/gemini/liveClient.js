@@ -79,13 +79,17 @@ export class EVLiveClient {
       });
     });
 
-    this.ws.on('message', async (data) => {
-      try {
-        const response = JSON.parse(data.toString());
-        await this.handleServerMessage(response);
-      } catch (e) {
-        console.error('❌ Error parsing message:', e);
+    this.ws.on('message', (data) => {
+      const message = JSON.parse(data.toString());
+      
+      // 🚨 REVEAL HIDDEN SERVER ERRORS
+      if (message.error) {
+        console.log("\n❌ API ERROR:", JSON.stringify(message.error, null, 2));
+      } else if (message.setupComplete) {
+        console.log("\n✅ Server is fully ready to receive commands!");
       }
+
+      this.handleServerMessage(message);
     });
 
     this.ws.on('close', (code, reason) => {
