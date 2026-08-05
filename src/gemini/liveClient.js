@@ -336,14 +336,41 @@ export class EVLiveClient {
   }
 
   async handleServerMessage(message) {
+    // 🛑 The only tools E.V. needs permission for
+    const dangerousTools = ['edit_file', 'delete_file'];
 
-    // 🛠️ CATCH AND EXECUTE TOOL CALLS
+    // 🧠 Quick helper function to ask you for permission in the terminal
+    const askPermission = async (toolName) => {
+      const readline = await import('readline');
+      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+      return new Promise(resolve => {
+        rl.question(`\n⚠️ E.V. wants to run [${toolName}]. Type 'yes' to allow, or 'no' to block: `, (answer) => {
+          rl.close();
+          resolve(answer.trim().toLowerCase() === 'yes');
+        });
+      });
+    };
+
+    // 🛠️ CATCH AND EXECUTE TOOL CALLS (LIVE API FORMAT)
     if (message.toolCall) {
       for (const call of message.toolCall.functionCalls) {
         console.log(`\n⚙️ Executing E.V.'s command: ${call.name}`);
         
-        // 1. Run the local logic you wrote earlier
-        const result = this.onToolCall(call.name, call.args);
+        let result;
+        
+        // 🔒 Check if the tool is dangerous
+        if (dangerousTools.includes(call.name)) {
+          const isAllowed = await askPermission(call.name);
+          if (!isAllowed) {
+            console.log(`\n🚫 Blocked E.V. from running: ${call.name}`);
+            result = "Error: User denied permission to execute this tool.";
+          } else {
+            result = await this.onToolCall(call.name, call.args);
+          }
+        } else {
+          // 🟢 Safe tool! Auto-execute instantly
+          result = await this.onToolCall(call.name, call.args);
+        }
         
         // 2. Send the result back to E.V. so she knows it finished!
         this.ws.send(JSON.stringify({
@@ -358,20 +385,37 @@ export class EVLiveClient {
       }
     }
 
+    // 🛠️ CATCH AND EXECUTE TOOL CALLS (STANDARD API FORMAT) & AUDIO/TEXT
     if (message.serverContent?.modelTurn?.parts) {
       
       // 🚨 FIX: Auto-lock the mic the second E.V. takes action!
       if (!this.isMuted) {
         this.isMuted = true;
         console.log("\n🔴 [MIC AUTO-CLOSED] E.V. is processing...");
-        sendToHUD('log', { message: '🔒 MIC AUTO-CLOSED by system.' });
+        if (typeof sendToHUD !== 'undefined') sendToHUD('log', { message: '🔒 MIC AUTO-CLOSED by system.' });
       }
 
       for (const part of message.serverContent.modelTurn.parts) {
         if (part.functionCall) {
           const { name, args, id } = part.functionCall;
           console.log(`\n🛠️ E.V. action requested: ${name}`, args);
-          const result = await this.onToolCall(name, args);
+          
+          let result;
+          
+          // 🔒 Check if the tool is dangerous
+          if (dangerousTools.includes(name)) {
+            const isAllowed = await askPermission(name);
+            if (!isAllowed) {
+              console.log(`\n🚫 Blocked E.V. from running: ${name}`);
+              result = "Error: User denied permission to execute this tool.";
+            } else {
+              result = await this.onToolCall(name, args);
+            }
+          } else {
+            // 🟢 Safe tool! Auto-execute instantly
+            result = await this.onToolCall(name, args);
+          }
+          
           this.sendToolResponse(id, name, result);
         }
         
@@ -381,7 +425,7 @@ export class EVLiveClient {
         }
         if (part.text) {
           console.log(`\n💬 E.V. says: ${part.text}`);
-          sendToHUD('transcript', { text: part.text });
+          if (typeof sendToHUD !== 'undefined') sendToHUD('transcript', { text: part.text });
         }
       }
     }
