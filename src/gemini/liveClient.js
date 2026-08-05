@@ -68,7 +68,7 @@ export class EVLiveClient {
         console.log("🚀 Sending test text command...");
         this.ws.send(JSON.stringify({
           clientContent: {
-            turns: [{ role: "user", parts: [{ text: "E.V., use the openBrowserTab tool to open https://www.google.com/search?q=latest+node.js+release" }] }],
+            turns: [{ role: "user", parts: [{ text: "E.V., create a file named test.text and write 'hello' inside it." }] }],
             turnComplete: true
           }
         }));
