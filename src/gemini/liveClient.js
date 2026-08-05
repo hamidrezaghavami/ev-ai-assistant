@@ -98,7 +98,7 @@ export class EVLiveClient {
           ]
         },
         tools: [{
-          functionDeclarations: Array.isArray(evToolsDeclaration) ? evToolsDeclaration : [evToolsDeclaration]
+          tools: Array.isArray(evToolsDeclaration) ? evToolsDeclaration : [evToolsDeclaration],
         }]
       }
     };
