@@ -36,16 +36,12 @@ export class EVLiveClient {
     this.ws = null;
     this.currentModel = 'models/gemini-3.1-flash-live-preview'; 
 
-    /* this.speaker = new Speaker({
-      channels: 1,
-      bitDepth: 16,
-      sampleRate: 24000
-    });
-
-    this.speaker.setMaxListeners(0);
-    */
-
+    // Start the persistent SoX audio process
+    const { spawn } = require('child_process');
     this.audioPlayer = spawn('sox', ['-q', '-t', 'raw', '-r', '24000', '-e', 'signed', '-b', '16', '-c', '1', '-', '-d']);
+
+    this.audioQueue = [];
+    this.isPlayingAudio = false;
   }
 
   connect() {
@@ -440,10 +436,31 @@ export class EVLiveClient {
     }
   }
 
+  // 📥 1. Catch chunks and put them in line
   playAudioSafe(audioBuffer) {
-    if (this.audioPlayer && this.audioPlayer.stdin) {
-      this.audioPlayer.stdin.write(audioBuffer);
+    this.audioQueue.push(audioBuffer);
+    this.processAudioQueue();
+  }
+
+  // 🎧 2. Feed them to your existing SoX stream smoothly
+  processAudioQueue() {
+    // If we are currently writing a chunk, or the line is empty, wait.
+    if (this.isPlayingAudio || this.audioQueue.length === 0) {
+      return;
     }
+
+    this.isPlayingAudio = true;
+    const nextBuffer = this.audioQueue.shift();
+
+    // Write it directly to the SoX stream you opened in the constructor!
+    this.audioPlayer.stdin.write(nextBuffer, (error) => {
+      if (error) {
+        console.error("Audio stream error:", error);
+      }
+      
+      this.isPlayingAudio = false;
+      this.processAudioQueue();
+    });
   }
 
   sendTextMessage(text) {
