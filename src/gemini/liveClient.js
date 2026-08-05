@@ -58,8 +58,13 @@ export class EVLiveClient {
       console.log(`⚡ Connected to Gemini Live API using engine: [${this.currentModel}]`);
       this.sendInitialSetup();
 
-      this.startMicrophoneStream();
-      this.setupWalkieTalkie();
+      // this.startMicrophoneStream();
+      // this.setupWalkieTalkie();
+
+      setTimeout(() => {
+        console.log('\n🤖 DIAGNOSTIC: Sending hardcoded text command...');
+        this.sendTextMessage("Spider-Man here. Use the create_file tool to create a file named perfect_test.txt with the content 'The brain works'.");
+      }, 3000);
     });
 
     this.ws.on('message', async (data) => {
@@ -98,7 +103,20 @@ export class EVLiveClient {
             }
           ]
         },
-        tools: Array.isArray(evToolsDeclaration) ? evToolsDeclaration : [evToolsDeclaration]
+        tools: [{
+          functionDeclarations: [{
+            name: "create_file",
+            description: "Creates a .txt file in the EV_Workspace.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                filename: { type: "STRING", description: "The name of the file, e.g., test.txt" },
+                content: { type: "STRING", description: "The text content to write inside." }
+              },
+              required: ["filename", "content"]
+            }
+          }]
+        }]
       }
     };
 
