@@ -321,16 +321,9 @@ export class EVLiveClient {
   }
 
   async handleServerMessage(message) {
+    // 1. Handle regular text and audio
     if (message.serverContent?.modelTurn?.parts) {
-
       for (const part of message.serverContent.modelTurn.parts) {
-        if (part.functionCall) {
-          const { name, args, id } = part.functionCall;
-          console.log(`\n🛠️ E.V. action requested: ${name}`, args);
-          const result = await this.onToolCall(name, args);
-          this.sendToolResponse(id, name, result);
-        }
-        
         if (part.inlineData && part.inlineData.mimeType.startsWith('audio/')) {
           const audioBuffer = Buffer.from(part.inlineData.data, 'base64');
           this.playAudioSafe(audioBuffer);
@@ -341,11 +334,25 @@ export class EVLiveClient {
         }
       }
     }
+
+    // 2. 🚨 THE FIX: Handle top-level tool calls correctly!
+    if (message.toolCall?.functionCalls) {
+      for (const call of message.toolCall.functionCalls) {
+        const { name, args, id } = call;
+        console.log(`\n🛠️ E.V. action requested: ${name}`, args);
+        
+        // Execute the tool
+        const result = await this.onToolCall(name, args);
+        
+        // Send the result back so she knows it succeeded
+        this.sendToolResponse(id, name, result);
+      }
+    }
     
+    // 3. Handle turn completion
     if (message.serverContent?.turnComplete) {
       console.log('✅ E.V. finished responding.\n');
 
-      // ⚡ Kill the process if the shutdown flag was tripped
       if (this.pendingShutdown) {
         console.log('⚡ E.V. is offline.');
         process.exit(0); 
