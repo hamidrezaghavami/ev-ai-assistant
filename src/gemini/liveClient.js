@@ -37,7 +37,6 @@ export class EVLiveClient {
     this.currentModel = 'models/gemini-3.1-flash-live-preview'; 
 
     // Start the persistent SoX audio process
-    const { spawn } = require('child_process');
     this.audioPlayer = spawn('sox', ['-q', '-t', 'raw', '-r', '24000', '-e', 'signed', '-b', '16', '-c', '1', '-', '-d']);
 
     this.audioQueue = [];
