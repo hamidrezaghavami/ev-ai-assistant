@@ -67,14 +67,27 @@ export class EVLiveClient {
         console.log("🚀 Sending test text command...");
         this.ws.send(JSON.stringify({
           clientContent: {
-            turns: [{
-              role: "user",
-              parts: [{ text: "Spider-Man here. E.V., search the web for latest Spider-Man Brand New Day movie news." }]
-            }],
+            turns: [{ role: "user", parts: [{ text: "Spider-Man here. E.V., search the web for the latest Spider-Man movie news." }] }],
             turnComplete: true
           }
         }));
       }, 2000);
+
+      // 💬 ADD TEXT CHAT TO TERMINAL
+      const readline = require('readline');
+      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+      
+      rl.on('line', (input) => {
+        if (this.ws && this.ws.readyState === 1) {
+          this.ws.send(JSON.stringify({
+            clientContent: {
+              turns: [{ role: "user", parts: [{ text: input }] }],
+              turnComplete: true
+            }
+          }));
+          console.log(`📤 Sent to E.V.: "${input}"`);
+        }
+      });
     });
 
     this.ws.on('message', async (data) => {
