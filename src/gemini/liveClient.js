@@ -410,6 +410,15 @@ export class EVLiveClient {
           if (!this.isMuted) {
             this.isMuted = true;
             console.log("\n🔴 [MIC CLOSED] Processing...");
+            
+            // 🚨 THE FIX: Tell Gemini "OVER!" so she answers immediately
+            if (this.ws && this.ws.readyState === 1) {
+              this.ws.send(JSON.stringify({
+                clientContent: {
+                  turnComplete: true
+                }
+              }));
+            }
           }
         }
       }
