@@ -79,6 +79,23 @@ export class EVLiveClient {
   }
 
   sendInitialSetup() {
+    let rawFunctions = [];
+    
+    if (Array.isArray(evToolsDeclaration)) {
+      if (evToolsDeclaration[0] && evToolsDeclaration[0].functionDeclarations) {
+        rawFunctions = evToolsDeclaration[0].functionDeclarations;
+      } else {
+        rawFunctions = evToolsDeclaration;
+      }
+    } else if (evToolsDeclaration && evToolsDeclaration.functionDeclarations) {
+      rawFunctions = evToolsDeclaration.functionDeclarations;
+    } else if (evToolsDeclaration && evToolsDeclaration.tools) {
+       rawFunctions = evToolsDeclaration.tools;
+    } else {
+       rawFunctions = [evToolsDeclaration];
+    }
+
+    // 🏗️ THE EXACT GEMINI PAYLOAD
     const setupMessage = {
       setup: {
         model: this.currentModel,
@@ -97,14 +114,15 @@ export class EVLiveClient {
             }
           ]
         },
+        // 🚨 STRICT STRUCTURE: One "tools" array containing exactly one object with "functionDeclarations"
         tools: [{
-          tools: evToolsDeclaration.tools ? evToolsDeclaration.tools : (Array.isArray(evToolsDeclaration) ? evToolsDeclaration : [evToolsDeclaration])
+          functionDeclarations: rawFunctions
         }]
       }
     };
 
     this.ws.send(JSON.stringify(setupMessage));
-    console.log('✅ Configuration sent');
+    console.log(`✅ Configuration sent with ${rawFunctions.length} tools attached`);
   }
 
   // 🛠️ Handle incoming tool requests from E.V.
