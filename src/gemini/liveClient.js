@@ -70,6 +70,9 @@ export class EVLiveClient {
     this.ws.on('message', async (data) => {
       try {
         const response = JSON.parse(data.toString());
+        
+        console.log("\n🔍 RAW API EVENT:", JSON.stringify(response, null, 2));
+        
         await this.handleServerMessage(response);
       } catch (e) {
         console.error('❌ Error parsing message:', e);
