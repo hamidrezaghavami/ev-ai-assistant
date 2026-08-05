@@ -6,6 +6,7 @@ import path from 'path';
 import os from 'os';
 import { exec, execSync, spawn } from 'child_process';
 import { GlobalKeyboardListener } from 'node-global-key-listener';
+import readline from 'readline';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
