@@ -82,7 +82,9 @@ export class EVLiveClient {
     this.ws.on('message', (data) => {
       const message = JSON.parse(data.toString());
       
-      // 🚨 REVEAL HIDDEN SERVER ERRORS
+      // 🕵️ ADD THIS LINE TO SEE EVERYTHING E.V. SENDS BACK:
+      console.log("\n📥 RAW SERVER RESPONSE:", JSON.stringify(message, null, 2));
+      
       if (message.error) {
         console.log("\n❌ API ERROR:", JSON.stringify(message.error, null, 2));
       } else if (message.setupComplete) {
