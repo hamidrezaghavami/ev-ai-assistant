@@ -301,7 +301,6 @@ export class EVLiveClient {
 
   async handleServerMessage(message) {
     if (message.serverContent?.modelTurn?.parts) {
-      this.isMuted = true; // 🔇 Mute microphone
 
       for (const part of message.serverContent.modelTurn.parts) {
         if (part.functionCall) {
@@ -324,7 +323,6 @@ export class EVLiveClient {
     
     if (message.serverContent?.turnComplete) {
       console.log('✅ E.V. finished responding.\n');
-      this.isMuted = false; // 🎤 Unmute microphone
 
       // ⚡ Kill the process if the shutdown flag was tripped
       if (this.pendingShutdown) {
