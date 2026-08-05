@@ -59,8 +59,22 @@ export class EVLiveClient {
       console.log(`⚡ Connected to Gemini Live API using engine: [${this.currentModel}]`);
       this.sendInitialSetup();
       
-      this.startMicrophoneStream();
-      this.setupWalkieTalkie();
+      // this.startMicrophoneStream();
+      // this.setupWalkieTalkie();
+
+      // ⌨️ INJECT TEXT COMMAND INSTEAD
+      setTimeout(() => {
+        console.log("🚀 Sending test text command...");
+        this.ws.send(JSON.stringify({
+          clientContent: {
+            turns: [{
+              role: "user",
+              parts: [{ text: "Spider-Man here. E.V., search the web for latest Spider-Man Brand New Day movie news." }]
+            }],
+            turnComplete: true
+          }
+        }));
+      }, 2000);
     });
 
     this.ws.on('message', async (data) => {
