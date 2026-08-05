@@ -68,7 +68,7 @@ export class EVLiveClient {
         console.log("🚀 Sending test text command...");
         this.ws.send(JSON.stringify({
           clientContent: {
-            turns: [{ role: "user", parts: [{ text: "Spider-Man here. E.V., search the web for the latest Spider-Man movie news." }] }],
+            turns: [{ role: "user", parts: [{ text: "E.V., use the openBrowserTab tool to open https://www.google.com/search?q=latest+node.js+release" }] }],
             turnComplete: true
           }
         }));
