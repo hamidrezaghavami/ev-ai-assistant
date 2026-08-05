@@ -75,7 +75,6 @@ export class EVLiveClient {
       }, 2000);
 
       // 💬 ADD TEXT CHAT TO TERMINAL
-      const readline = require('readline');
       const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
       
       rl.on('line', (input) => {
