@@ -5,6 +5,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import { exec, execSync, spawn } from 'child_process';
+import { GlobalKeyboardListener } from 'node-global-key-listener';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
@@ -382,39 +383,33 @@ export class EVLiveClient {
   }
 
   setupWalkieTalkie() {
-    // Start with the mic strictly muted
-    this.isMuted = true; 
-    
-    // Listen to raw keyboard inputs in the terminal
-    process.stdin.setRawMode(true);
-    process.stdin.resume();
-    
-    console.log("\n📻 WALKIE-TALKIE MODE ACTIVE:");
-    console.log("   - Press [SPACEBAR] to open the mic and talk.");
-    console.log("   - Press [SPACEBAR] again to send the audio to E.V.");
-    console.log("   - Press [Ctrl + C] to quit the app.\n");
+    const keyboard = new GlobalKeyboardListener();
+    let isHoldingSpace = false;
 
-    process.stdin.on('data', (key) => {
-      // Keep Ctrl+C working to quit the app safely
-      if (key.toString() === '\u0003') {
-        console.log("Shutting down...");
-        process.exit();
-      }
+    console.log("\n🎙️ TRUE HOLD-TO-TALK ACTIVE:");
+    console.log("  - HOLD [SPACEBAR] to open the mic.");
+    console.log("  - RELEASE to close the mic and send to E.V.");
+    console.log("  - Press [Ctrl + C] to quit.");
 
-      // When you press Spacebar
-      if (key.toString() === ' ') {
-        this.isMuted = !this.isMuted;
-
-        if (!this.isMuted) {
-          console.log("\n🟢 [MIC OPEN] E.V. is listening...");
-          sendToHUD('log', { message: '🎙️ MIC OPEN - Receiving audio...' });
-        } else {
-          console.log("\n🔴 [MIC CLOSED] Sending audio to E.V...");
-          sendToHUD('log', { message: '🔒 MIC CLOSED - Processing data...' });
-          
-          // 👈 THIS IS THE MAGIC SIGNAL! It tells Gemini you are done speaking.
-          if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(JSON.stringify({ clientContent: { turnComplete: true } }));
+    keyboard.addListener((e) => {
+      // We only care about the Spacebar
+      if (e.name === "SPACE") {
+        
+        // 🟢 KEY DOWN: Open the mic
+        if (e.state === "DOWN" && !isHoldingSpace) {
+          isHoldingSpace = true;
+          if (this.isMuted) {
+            this.isMuted = false;
+            console.log("\n🟢 [MIC OPEN] Listening... (Keep holding)");
+          }
+        }
+        
+        // 🔴 KEY UP: Close the mic
+        else if (e.state === "UP" && isHoldingSpace) {
+          isHoldingSpace = false;
+          if (!this.isMuted) {
+            this.isMuted = true;
+            console.log("\n🔴 [MIC CLOSED] Processing...");
           }
         }
       }
