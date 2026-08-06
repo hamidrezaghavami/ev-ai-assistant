@@ -159,7 +159,9 @@
         
         <div class="main-display" id="visual-area">
             <div class="scanner"></div>
-            <!-- We will command E.V. to draw on this canvas using JavaScript -->
+            
+            <div id="display-content" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; padding: 20px; box-sizing: border-box; overflow-y: auto; text-shadow: 0 0 5px #00ffff; font-size: 18px; white-space: pre-wrap;"></div>
+            
             <canvas id="hologram-canvas"></canvas>
         </div>
 
@@ -218,9 +220,7 @@
                 addLog(data.message);
             }
             else if (data.type === 'display') {
-                // 👉 ADD THIS BLOCK: Target the ID of your big main window
-                // // Replace 'main-display-window' with whatever ID you used for that big empty box
-                document.getElementById('main-display-window').innerHTML = data.content;
+                document.getElementById('display-content').innerHTML = data.content;
             }
         };
 
