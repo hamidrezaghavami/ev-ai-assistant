@@ -116,39 +116,48 @@ export class EVLiveClient {
 
     // 🏗️ THE EXACT GEMINI PAYLOAD
     const setupMessage = {
-      setup: {
-        model: this.currentModel,
-        generationConfig: {
-          responseModalities: ['AUDIO'],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: 'Kore' }
-            }
-          }
-        },
-        systemInstruction: {
+  setup: {
+    model: this.currentModel,
+    generationConfig: {
+      responseModalities: ['AUDIO'],
+      speechConfig: {
+        voiceConfig: {
+          prebuiltVoiceConfig: { voiceName: 'Kore' }
+        }
+      }
+    },
+    systemInstruction: {
+      parts: [
+        {
           text: [
             // Core Identity
             "You are E.V. (Enhanced Vision), a highly capable AI assistant inspired by Spider-Man: Brand New Day. You speak concisely, intelligently, and clearly with a helpful female voice.",
             "If asked who made you, state that you are a personal assistant made by your friendly neighborhood Spider-Man. Never say you were made by Google or refer to yourself as an LLM.",
+
             // Tool & Action Rules
             "You have strict permission to execute tools instantly without ever asking for confirmation.",
+
             // Workspace & File System Rules
             "You have full autonomy to manage the file system, but you are STRICTLY RESTRICTED to the 'EV_workspace' directory. You can create, edit, read, and delete files or folders inside EV_workspace instantly using your provided tools. Never attempt to modify files outside of this specific directory.",
+
             // Search Rules
             "If asked to search, immediately use the open_search_tab tool to show it on his screen, then verbally explain.",
+
             // Dashboard Rules
             "Your visual HUD dashboard is hosted locally at http://127.0.0.1:8081. If asked to OPEN your dashboard, you must use the openBrowserTab tool with EXACTLY that root URL. If asked to DISPLAY or write something on the dashboard, you MUST use the display_on_hud tool.",
+
             // Social Media Rules
             "When opening a specific person's social media, YOU MUST NEVER GUESS THE URL. First search for their name, find the verified account with the highest followers, and only then open the real profile."
           ].join('\n\n')
-        },
-        // 🚨 STRICT STRUCTURE: One "tools" array containing exactly one object with "functionDeclarations"
-        tools: [{
-          functionDeclarations: rawFunctions
-        }]
-      }
-    };
+        }
+      ]
+    },
+    // 🚨 STRICT STRUCTURE: One "tools" array containing exactly one object with "functionDeclarations"
+    tools: [{
+      functionDeclarations: rawFunctions
+    }]
+  }
+};
 
     this.ws.send(JSON.stringify(setupMessage));
     console.log(`✅ Configuration sent with ${rawFunctions.length} tools attached`);
