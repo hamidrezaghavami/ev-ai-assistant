@@ -90,11 +90,11 @@ export async function executeToolCall(functionName, args) {
   }
 }
 
+startHUDServer();
+
 async function bootstrap() {
   await initWorkspace();
   console.log('🤖 E.V. Workspace sandbox active.');
-
-  startHUDServer();
 
   const client = new EVLiveClient(executeToolCall);
   client.connect();
