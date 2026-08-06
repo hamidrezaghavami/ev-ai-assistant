@@ -321,17 +321,6 @@ export class EVLiveClient {
       }
     }
 
-    // 🌐 OPEN BROWSER TAB
-    if (name === 'openBrowserTab') {
-      try {
-        exec(`open "${args.url}"`); 
-        console.log(`\n🌐 E.V. opened browser tab: ${args.url}`);
-        return { status: "success", message: `Successfully opened ${args.url}` };
-      } catch (err) {
-        return { status: "error", message: `Failed to open browser: ${err.message}` };
-      }
-    }
-
     // 🚫 CLOSE ACTIVE BROWSER TAB
     if (name === 'closeActiveBrowserTab') {
       try {
