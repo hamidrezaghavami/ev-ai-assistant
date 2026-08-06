@@ -19,14 +19,14 @@ export { evToolsDeclaration };
 const hudClients = new Set();
 
 export function broadcastHUD(payload) {
-  if (typeof wss !== 'undefined') {
-    wss.clients.forEach((client) => {
+  if (hudClients.size > 0) {
+    hudClients.forEach((client) => {
       if (client.readyState === 1) { 
         client.send(JSON.stringify(payload));
       }
     });
   } else {
-    console.log("🚨 wss is not defined! Data cannot be sent to the HUD.");
+    console.log("🚨 No HUD clients connected! Data cannot be sent to the HUD.");
   }
 }
 
