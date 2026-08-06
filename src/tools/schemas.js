@@ -20,14 +20,6 @@ export const evToolsDeclaration = [
         description: "Shuts down the E.V. system. Call this when Hamidreza tells you to sleep, shut down, or go offline. Say a cool, brief sign-off like 'Going dark' or 'System powering down' before executing."
       },
       {
-        name: "open_dashboard",
-        description: "Opens E.V.'s visual HUD dashboard interface in the user's default web browser. Execute this immediately when the user asks to see your screen, visual interface, or HUD.",
-        parameters: {
-          type: "OBJECT", 
-          properties: {} // No parameters needed! She just pulls the trigger.
-          }
-        },
-      {
         name: 'create_file',
         description: 'Creates a new file in the user\'s workspace.',
         parameters: {
