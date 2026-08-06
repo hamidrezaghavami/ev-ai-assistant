@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Math Rendering Engine -->
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
     <meta charset="UTF-8">
     <title>E.V. Visual Interface</title>
     <style>
@@ -158,7 +166,6 @@
         </div>
         
         <div class="main-display" id="visual-area">
-            <div class="scanner"></div>
             
             <!-- E.V.'s Main Visual Display Area (You pasted this here!) -->
             <div id="ev-display-screen" style="
