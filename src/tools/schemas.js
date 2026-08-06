@@ -20,6 +20,20 @@ export const evToolsDeclaration = [
         description: "Shuts down the E.V. system. Call this when Hamidreza tells you to sleep, shut down, or go offline. Say a cool, brief sign-off like 'Going dark' or 'System powering down' before executing."
       },
       {
+        name: "display_on_hud",
+        description: "Displays text, explanations, math, or data directly on the user's visual HUD dashboard. Use this INSTANTLY when the user asks you to show something on the screen, explain a concept, or display information visually.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            content: {
+              type: "STRING",
+              description: "The text or markdown content to display on the main screen."
+            }
+          },
+          required: ["content"]
+        }
+      },
+      {
         name: 'create_file',
         description: 'Creates a new file in the user\'s workspace.',
         parameters: {

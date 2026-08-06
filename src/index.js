@@ -67,7 +67,12 @@ const toolMap = {
   deleteWorkspaceFile: async (args) => await deleteWorkspaceFile(args.filename),
   openBrowserTab: async (args) => await openBrowserTab(args.url),
   closeActiveBrowserTab: async () => await closeActiveBrowserTab(),
-  // Informative fallback for switchModel if called
+
+  display_on_hud: async (args) => {
+    broadcastHUD({ type: 'display', content: args.content });
+    return "Successfully displayed the content on the HUD.";
+  },
+  
   switchModel: async (args) => `Model switching to ${args.targetModel} is logged.`
 };
 

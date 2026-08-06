@@ -217,7 +217,11 @@
             if (data.type === 'log') {
                 addLog(data.message);
             }
-            // Future feature: if (data.type === 'draw_architecture') { renderArchitecture(data.nodes); }
+            else if (data.type === 'display') {
+                // 👉 ADD THIS BLOCK: Target the ID of your big main window
+                // // Replace 'main-display-window' with whatever ID you used for that big empty box
+                document.getElementById('main-display-window').innerHTML = data.content;
+            }
         };
 
         ws.onclose = () => {
