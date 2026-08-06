@@ -70,7 +70,6 @@ const toolMap = {
   deleteWorkspaceFile: async (args) => await deleteWorkspaceFile(args.filename),
   openBrowserTab: async (args) => await openBrowserTab(args.url),
   closeActiveBrowserTab: async () => await closeActiveBrowserTab(),
-  openDashboard: async () => await openBrowserTab('http://127.0.0.1:8081'),
   open_dashboard: async () => await openBrowserTab('http://127.0.0.1:8081'),
   // Informative fallback for switchModel if called
   switchModel: async (args) => `Model switching to ${args.targetModel} is logged.`
