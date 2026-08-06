@@ -58,8 +58,8 @@ function startHUDServer() {
 
   console.log('---> ATTEMPTING TO START HUD SERVER <---');
 
-  server.listen(8080, () => {
-    console.log('🚀 HUD Dashboard running at http://localhost:8080');
+  server.listen(8081, () => {
+    console.log('🚀 HUD Dashboard running at http://localhost:8081');
   });
 }
 
@@ -70,8 +70,8 @@ const toolMap = {
   deleteWorkspaceFile: async (args) => await deleteWorkspaceFile(args.filename),
   openBrowserTab: async (args) => await openBrowserTab(args.url),
   closeActiveBrowserTab: async () => await closeActiveBrowserTab(),
-  openDashboard: async () => await openBrowserTab('http://localhost:8080'),
-  open_dashboard: async () => await openBrowserTab('http://localhost:8080'),
+  openDashboard: async () => await openBrowserTab('http://localhost:8081'),
+  open_dashboard: async () => await openBrowserTab('http://localhost:8081'),
   // Informative fallback for switchModel if called
   switchModel: async (args) => `Model switching to ${args.targetModel} is logged.`
 };
