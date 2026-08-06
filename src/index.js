@@ -29,20 +29,17 @@ export function broadcastHUD(payload) {
 
 function startHUDServer() {
   const server = http.createServer((req, res) => {
-    if (req.url === '/' || req.url === '/index.html') {
-      const filePath = path.join(process.cwd(), 'src', 'gemini', 'index.html');
-      fs.readFile(filePath, (err, data) => {
-        if (err) {
-          res.writeHead(500);
-          return res.end('Error loading index.html from project root.');
-        }
+    const filePath = path.join(process.cwd(), 'src', 'gemini', 'index.html'); 
+    
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        res.writeHead(500);
+        res.end('Error loading dashboard');
+      } else {
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(data);
-      });
-    } else {
-      res.writeHead(404);
-      res.end('Not Found');
-    }
+      }
+    });
   });
 
   const wss = new WebSocketServer({ server });
