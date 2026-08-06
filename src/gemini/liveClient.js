@@ -34,6 +34,7 @@ function sendToHUD(type, payload) {
 
 export class EVLiveClient {
   constructor(onToolCall) {
+    this.externalToolHandler = onToolCall;
     this.ws = null;
     this.currentModel = 'models/gemini-3.1-flash-live-preview'; 
 
@@ -373,6 +374,9 @@ export class EVLiveClient {
       } catch (err) {
         return { status: "error", message: `Failed to read tab. Ensure Chrome/Safari is open. Error: ${err.message}` };
       }
+    }
+    if (this.externalToolHandler) {
+      return await this.externalToolHandler(name, args);
     }
     
     return { status: "error", message: `Tool ${name} not found.` };
