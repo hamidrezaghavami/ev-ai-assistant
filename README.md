@@ -61,5 +61,6 @@ ev-ai-assistant/
     │   └── schemas.js     # E.V. schemas work and instructions
     └── gemini/
         └── liveClient.js  # WebSocket / Gemini Multimodal Live client
+        └── index.html     # Movie-Style Visual UI (Dashboard)
 ```
 - this is the structure of `online` mode of `E.V.` but for situation that there is no Internet we thinking about enhancing situation by adding a parallel ai system into our existant one with `Ollama "Qwen2.5-coder:1.5b" that is 1GB for download` lighweight model that run locally on our own device to do limited important parts.

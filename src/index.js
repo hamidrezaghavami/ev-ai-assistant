@@ -56,6 +56,8 @@ function startHUDServer() {
     });
   });
 
+  console.log('---> ATTEMPTING TO START HUD SERVER <---');
+
   server.listen(8080, () => {
     console.log('🚀 HUD Dashboard running at http://localhost:8080');
   });
