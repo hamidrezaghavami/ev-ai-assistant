@@ -240,6 +240,12 @@
                 const displayScreen = document.getElementById('ev-display-screen');
                 if(displayScreen) {
                     displayScreen.innerHTML = data.content || "ERROR: Payload was empty!";
+                    
+                    // Force MathJax to scan the box and draw the symbols
+                    if (window.MathJax) {
+                        MathJax.typesetClear();
+                        MathJax.typesetPromise([displayScreen]).catch((err) => console.log('Math error:', err.message));
+                    }
                 } else {
                     addLog("ERROR: Could not find ev-display-screen div!");
                 }
