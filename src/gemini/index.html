@@ -9,6 +9,18 @@
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
+    <!-- Math Rendering Engine (You already have this) -->
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Software Architecture Diagram Engine (Add this!) -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+    </script>
+
     <meta charset="UTF-8">
     <title>E.V. Visual Interface</title>
     <style>
@@ -238,15 +250,24 @@
                 addLog(`DATA RECEIVED. LENGTH: ${data.content ? data.content.length : 'UNDEFINED'}`);
                 
                 const displayScreen = document.getElementById('ev-display-screen');
-                if(displayScreen) {
+                if (displayScreen) {
                     displayScreen.innerHTML = data.content || "ERROR: Payload was empty!";
                     
-                    // Force MathJax to scan the box and draw the symbols
                     if (window.MathJax) {
                         MathJax.typesetClear();
                         MathJax.typesetPromise([displayScreen]).catch((err) => console.log('Math error:', err.message));
                     }
+
+                    // Force Mermaid to draw software diagrams
+                    if (window.mermaid) {
+                        try { 
+                            mermaid.init(undefined, displayScreen.querySelectorAll('.mermaid')); 
+                        } catch (err) { 
+                            console.error('Mermaid error:', err); 
+                        }
+                    }
                 } else {
+                    // Properly closed else statement!
                     addLog("ERROR: Could not find ev-display-screen div!");
                 }
             }
