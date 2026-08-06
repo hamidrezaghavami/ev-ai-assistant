@@ -34,6 +34,20 @@ export const evToolsDeclaration = [
         }
       },
       {
+        name: "open_search_tab",
+        description: "Searches the web by opening a new browser tab with the Google search results.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            query: {
+              type: "STRING",
+              description: "The search query."
+            }
+          },
+          required: ["query"]
+        }
+      },
+      {
         name: 'create_file',
         description: 'Creates a new file in the user\'s workspace.',
         parameters: {

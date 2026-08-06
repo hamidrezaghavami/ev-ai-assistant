@@ -66,6 +66,12 @@ const toolMap = {
   readWorkspaceFile: async (args) => await readWorkspaceFile(args.filename),
   deleteWorkspaceFile: async (args) => await deleteWorkspaceFile(args.filename),
   openBrowserTab: async (args) => await openBrowserTab(args.url),
+
+  open_search_tab: async (args) => {
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(args.query)}`;
+    return await openBrowserTab(searchUrl);
+  },
+  
   closeActiveBrowserTab: async () => await closeActiveBrowserTab(),
 
   display_on_hud: async (args) => {
