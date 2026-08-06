@@ -220,6 +220,7 @@
                 addLog(data.message);
             }
             else if (data.type === 'display') {
+                addLog("INCOMING VISUAL DATA RECEIVED.");
                 document.getElementById('display-content').innerHTML = data.content;
             }
         };
