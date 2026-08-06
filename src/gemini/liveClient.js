@@ -75,11 +75,11 @@ export class EVLiveClient {
       });
     });
 
-    this.ws.on('message', (data) => {
+    this.ws.on('message', async (data) => {
       const message = JSON.parse(data.toString());
       
-      // 🕵️ ADD THIS LINE TO SEE EVERYTHING E.V. SENDS BACK:
-      console.log("\n📥 RAW SERVER RESPONSE:", JSON.stringify(message, null, 2));
+      // 🕵️ KEEP THIS: Great for debugging
+      // console.log("\n📥 RAW SERVER RESPONSE:", JSON.stringify(message, null, 2));
       
       if (message.error) {
         console.log("\n❌ API ERROR:", JSON.stringify(message.error, null, 2));
@@ -87,6 +87,50 @@ export class EVLiveClient {
         console.log("\n✅ Server is fully ready to receive commands!");
       }
 
+      // 👉 THE INTERCEPTOR: Catch tool requests from E.V.
+      if (message.serverContent && message.serverContent.modelTurn) {
+        const parts = message.serverContent.modelTurn.parts;
+        for (const part of parts) {
+          if (part.functionCall) {
+            const toolName = part.functionCall.name;
+            const args = part.functionCall.args;
+            
+            console.log(`\n⚡ E.V. IS FIRING TOOL: ${toolName}`);
+            
+            // 1. Run the tool from your toolMap
+            if (toolMap[toolName]) {
+              try {
+                const result = await toolMap[toolName](args);
+                console.log(`✅ ${toolName} success!`);
+                
+                // 2. YOU MUST TELL E.V. THE TOOL FINISHED!
+                // If you don't send this back, she will freeze and wait forever.
+                const toolResponse = {
+                  clientContent: {
+                    turnComplete: true,
+                    turns: [{
+                      parts: [{
+                        functionResponse: {
+                          name: toolName,
+                          response: { result: "Success" }
+                        }
+                      }]
+                    }]
+                  }
+                };
+                this.ws.send(JSON.stringify(toolResponse));
+
+              } catch (err) {
+                console.error(`❌ Error in ${toolName}:`, err);
+              }
+            } else {
+              console.log(`⚠️ E.V. tried to use a tool that isn't in toolMap: ${toolName}`);
+            }
+          }
+        }
+      }
+
+      // Pass the rest of the message (like audio/text) to your normal handler
       this.handleServerMessage(message);
     });
 
