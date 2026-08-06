@@ -160,7 +160,19 @@
         <div class="main-display" id="visual-area">
             <div class="scanner"></div>
             
-            <div id="display-content" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; padding: 20px; box-sizing: border-box; overflow-y: auto; text-shadow: 0 0 5px #00ffff; font-size: 18px; white-space: pre-wrap;"></div>
+            <!-- E.V.'s Main Visual Display Area (You pasted this here!) -->
+            <div id="ev-display-screen" style="
+                border: 1px solid #0ff; 
+                padding: 20px; 
+                margin-top: 20px; 
+                color: #0ff; 
+                font-family: monospace; 
+                font-size: 1.2rem; 
+                white-space: pre-wrap; 
+                background-color: rgba(0, 255, 255, 0.05);
+            ">
+                > Awaiting visual data...
+            </div>
             
             <canvas id="hologram-canvas"></canvas>
         </div>
@@ -212,16 +224,12 @@
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            
-            if (data.type === 'transcript') {
-                document.getElementById('ev-transcript').innerText = data.text;
-            }
             if (data.type === 'log') {
                 addLog(data.message);
-            }
+            } 
             else if (data.type === 'display') {
-                addLog("INCOMING VISUAL DATA RECEIVED.");
-                document.getElementById('display-content').innerHTML = data.content;
+                const displayScreen = document.getElementById('display-content');
+                displayScreen.innerHTML = data.content;
             }
         };
 
