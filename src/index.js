@@ -83,6 +83,23 @@ const toolMap = {
 
   display_on_hud: async (args) => {
     console.log("🚨 INCOMING ARGS FROM E.V.:", args);
+    
+    // 🛡️ THE SMART LOCK: If the HUD isn't connected yet, wait up to 5 seconds!
+    if (hudClients.size === 0) {
+      console.log("⏳ E.V. is waiting for the HUD to boot up and connect...");
+      await new Promise(resolve => {
+        let attempts = 0;
+        const checkInterval = setInterval(() => {
+          attempts++;
+          // Check every 200ms if Safari has connected, or give up after 5 seconds
+          if (hudClients.size > 0 || attempts > 25) { 
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 200);
+      });
+    }
+
     broadcastHUD({ type: 'display', content: args.content });
     return "Successfully displayed the content on the HUD.";
   },
