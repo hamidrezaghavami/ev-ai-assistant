@@ -228,8 +228,14 @@
                 addLog(data.message);
             } 
             else if (data.type === 'display') {
-                const displayScreen = document.getElementById('display-content');
-                displayScreen.innerHTML = data.content;
+                addLog(`DATA RECEIVED. LENGTH: ${data.content ? data.content.length : 'UNDEFINED'}`);
+                
+                const displayScreen = document.getElementById('ev-display-screen');
+                if(displayScreen) {
+                    displayScreen.innerHTML = data.content || "ERROR: Payload was empty!";
+                } else {
+                    addLog("ERROR: Could not find ev-display-screen div!");
+                }
             }
         };
 

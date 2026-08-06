@@ -82,6 +82,7 @@ const toolMap = {
   closeActiveBrowserTab: async () => await closeActiveBrowserTab(),
 
   display_on_hud: async (args) => {
+    console.log("🚨 INCOMING ARGS FROM E.V.:", args);
     broadcastHUD({ type: 'display', content: args.content });
     return "Successfully displayed the content on the HUD.";
   },
