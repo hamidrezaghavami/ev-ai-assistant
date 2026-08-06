@@ -19,12 +19,15 @@ export { evToolsDeclaration };
 const hudClients = new Set();
 
 export function broadcastHUD(payload) {
-  const message = JSON.stringify(payload);
-  hudClients.forEach((client) => {
-    if (client.readyState === 1) { // 1 = OPEN
-      client.send(message);
-    }
-  });
+  if (typeof wss !== 'undefined') {
+    wss.clients.forEach((client) => {
+      if (client.readyState === 1) { 
+        client.send(JSON.stringify(payload));
+      }
+    });
+  } else {
+    console.log("🚨 wss is not defined! Data cannot be sent to the HUD.");
+  }
 }
 
 function startHUDServer() {
@@ -71,7 +74,7 @@ const toolMap = {
     const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(args.query)}`;
     return await openBrowserTab(searchUrl);
   },
-  
+
   closeActiveBrowserTab: async () => await closeActiveBrowserTab(),
 
   display_on_hud: async (args) => {
