@@ -200,6 +200,17 @@
             from { opacity: 0; transform: translateX(-10px); }
             to { opacity: 1; transform: translateX(0); }
         }
+
+        /* 1. Flat, crisp text (Zero GPU load) */
+        body, .hud-text {
+            color: #0ff;
+        }
+        
+        /* 2. Flat glowing borders (Zero GPU load) */
+        #ev-display-screen, .hud-box {
+            border: 1px solid #0ff;
+            background-color: rgba(0, 255, 255, 0.03); /* Adds a faint cyan background tint instead of an outer glow */
+        }
     </style>
 </head>
 <body>

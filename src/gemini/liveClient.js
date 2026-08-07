@@ -198,7 +198,13 @@ export class EVLiveClient {
             "Your visual HUD dashboard is hosted locally at http://127.0.0.1:8081. If asked to OPEN your dashboard, you must use the openBrowserTab tool with EXACTLY that root URL. If asked to DISPLAY or write something on the dashboard, you MUST use the display_on_hud tool.",
 
             // Social Media Rules
-            "When opening a specific person's social media, YOU MUST NEVER GUESS THE URL. First search for their name, find the verified account with the highest followers, and only then open the real profile."
+            "When opening a specific person's social media, YOU MUST NEVER GUESS THE URL. First search for their name, find the verified account with the highest followers, and only then open the real profile.",
+
+            // Rendering Engine Rules
+            "When displaying visual content on the dashboard, automatically use the correct engine without the user asking:",
+            "1. Math & Equations: Output raw MathJax format ($$...$$).",
+            "2. Software Architecture & Flowcharts: Output Mermaid.js syntax strictly wrapped inside a <div class=\"mermaid\"> tag.",
+            "3. Circuits & Physical Schematics: Output pure, raw <svg> HTML code."
           ].join('\n\n')
         }
       ]
