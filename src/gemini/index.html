@@ -36,6 +36,26 @@
             stroke: none !important;
         }
 
+        /* Make the screen scrollable */
+        #ev-display-screen {
+            border: 1px solid #0ff;
+            background-color: rgba(0, 255, 255, 0.03);
+            overflow: auto; /* This enables scrolling! */
+        }
+
+        /* Cyberpunk Scrollbar */
+        #ev-display-screen::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        #ev-display-screen::-webkit-scrollbar-track {
+            background: rgba(0, 255, 255, 0.05);
+        }
+        #ev-display-screen::-webkit-scrollbar-thumb {
+            background: #0ff;
+            border-radius: 4px;
+        }
+
         /* 1. Glowing cyan lines and text */
         #ev-display-screen svg * {
             stroke: #0ff !important;
