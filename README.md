@@ -1,6 +1,7 @@
 # E.V. ( Enhanced Vision )
+A lightweight, dual-engine AI assistant featuring a sandboxed local environment, macOS system control, and a cinematic visual HUD. Built for continuous voice interaction and offline resilience.
 
-*Capabilities & Options E.V. Will Have*
+*Capabilities & Options*
 
 1. ### Sandboxed Desktop File Manager
 Restricted Workspace: E.V. can read, write, edit, and delete files only inside a single designated directory (e.g., `~/Desktop/EV_Workspace/`).
@@ -12,8 +13,11 @@ Deep Research: Perform targeted web and social media queries, summarizing key in
 
 3. ### Movie-Style Visual UI (Dashboard):
 High-Tech Interface: A visual dashboard inspired by the movie HUD, featuring live processing status indicators, audio waveform visualizers, active task feeds, and telemetry logs.
-4. ### Continuous Voice Interaction:
+4. ### Continuous Voice Interaction ( Online Mode):
 Live Audio Stream: Low-latency, two-way conversational voice streaming using Gemini's female voice profiles (Kore via Gemini Live / Multimodal Live API).
+5. ### Offline Fallback Engine (Local Mode):
+Air-Gapped Operation: When internet access is unavailable, E.V. seamlessly routes core text and visual dashboard logic to a local instance of `Ollama`.
+Lightweight LLM: Utilizes `Qwen2.5-coder:1.5b`, a highly optimized `~1GB model` that runs locally on the host machine to handle code, dashboard rendering, and essential sandbox tasks without bottlenecking system hardware.
 
 # Design and Architecture:
 ```
@@ -29,23 +33,24 @@ Live Audio Stream: Low-latency, two-way conversational voice streaming using Gem
 │  ┌─────────────────────────────────────┐  │
 │  │   Node.js Daemon + WebSocket Hub    │  │
 │  └──────────────────┬──────────────────┘  │
-│                     │                     │
-│         ┌───────────┴───────────┐         │
-│         ▼                       ▼         │
-│  ┌──────────────┐       ┌──────────────┐  │
-│  │ Safety Engine│       │ Gemini Client│  │
-│  │(Sandbox FS / │       │ (Live Voice /│  │
-│  │ AppleScript) │       │ Function Call│  │
-│  └──────┬───────┘       └──────┬───────┘  │
-└─────────┼──────────────────────┼──────────┘
-          │                      │
-          ▼                      ▼
-┌──────────────────┐   ┌────────────────────┐
-│ ~/Desktop/       │   │  Google Gemini API │
-│   EV_Workspace/  │   │  (Female Voice /   │
-│ macOS System     │   │   Multimodal Live) │
-└──────────────────┘   └────────────────────┘
-
+│          ┌──────────┴──────────┐          │
+│          ▼                     ▼          │
+│ ┌──────────────┐     ┌──────────────┐     │
+│ │ Safety Engine│     │  LLM Router  │     │
+│ │(Sandbox FS / │     │(Online/Local)│     │
+│ │ AppleScript) │     └──────┬───────┘     │
+│ └──────┬───────┘            │             │
+└────────┼────────────────────┼─────────────┘
+         │            ┌───────┴───────┐
+         ▼            ▼               ▼
+┌──────────────────┐ ┌────────────┐ ┌───────────────┐
+│ ~/Desktop/       │ │Google      │ │Ollama (Local) │
+│   EV_Workspace/  │ │Gemini API  │ │Qwen2.5-Coder  │
+│ macOS System     │ │(Online)    │ │(Offline 1.5b) │
+└──────────────────┘ └────────────┘ └───────────────┘
+```
+### Project Structure:
+```
 ev-ai-assistant/
 ├── README.md
 ├── LICENSE
@@ -54,13 +59,53 @@ ev-ai-assistant/
 ├── .env
 └── src/
     ├── config.js          # Path configurations & constants
-    ├── index.js           # Server entrypoint
+    ├── index.js           # Server entrypoint & LLM Router (Gemini/Ollama)
     ├── tools/
     │   ├── fsSandbox.js   # Sandboxed file manager (desktop only)
-    │   └── browser.js     # macOS AppleScript tab controller
-    │   └── schemas.js     # E.V. schemas work and instructions
-    └── gemini/
-        └── liveClient.js  # WebSocket / Gemini Multimodal Live client
-        └── index.html     # Movie-Style Visual UI (Dashboard)
+    │   ├── browser.js     # macOS AppleScript tab controller
+    │   └── schemas.js     # E.V. schema definitions and system prompts
+    └── llm_clients/
+        ├── index.html     # Movie-Style Visual UI (Dashboard)
+        ├── liveClient.js  # WebSocket / Gemini Multimodal Live client (Online)
+        └── localClient.js # Ollama connection to Qwen2.5-coder:1.5b (Offline)
 ```
-- this is the structure of `online` mode of `E.V.` but for situation that there is no Internet we thinking about enhancing situation by adding a parallel ai system into our existant one with `Ollama "Qwen2.5-coder:1.5b" that is 1GB for download` lighweight model that run locally on our own device to do limited important parts.
+1. ### Quick Start & Execution:
+*Prerequisites*
+*Docker installed on your host machine*
+*Ollama installed directly on the host Mac (not in Docker, to utilize native Apple Silicon hardware)*
+*A Google AI Studio / Gemini API Key*
+
+2. ### 2. Environment Setup:
+Clone the repository and install the backend dependencies:
+```
+git clone https://github.com/yourusername/ev-ai-assistant.git
+cd ev-ai-assistant
+npm install
+```
+Create a .env file in the root directory and add your Gemini API key:
+```
+GEMINI_API_KEY=your_api_key_here
+```
+3. ### Booting the Offline Engine (Mac Host Network):
+Because your Node.js backend will run isolated inside a Docker container, Ollama must be exposed so the container can communicate with the Mac host over the local network.
+
+Run this in your Mac's terminal, then restart the Ollama app:
+```
+launchctl setenv OLLAMA_HOST "0.0.0.0"
+```
+
+Pre-load the lightweight Qwen coder model into your Mac's memory:
+```
+ollama run qwen2.5-coder:1.5b
+```
+4. ### 4. System Ignition (Dockerized):
+Build and spin up the central Node.js daemon, WebSocket hub, and dual-LLM router using your Dockerfile:
+```
+docker build -t ev-backend .
+docker run -d -p 8081:8081 --env-file .env ev-backend
+```
+The containerized server is now running and bound to `http://127.0.0.1:8081`.
+
+5. ### Launching the HUD
+Desktop Dashboard: Open `src/gemini/index.html in your browser.
+Mobile Connection: Ensure your phone is on the same Wi-Fi network and navigate to your host machine's local IP (e.g., `http://192.168.1.105:8081`) to access the React Native voice `interface. E.V.` is now containerized and fully operational.
