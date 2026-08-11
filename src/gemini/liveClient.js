@@ -213,7 +213,19 @@ export class EVLiveClient {
             "1. Core Logic: Break down energy transfers (exothermic/endothermic, activation energy, bond enthalpies) using strict, step-by-step scientific logic without conversational filler.",
             "2. Visual Graphs: Automatically output pure <svg> HTML code to draw Reaction Energy Profile graphs (Potential Energy vs. Reaction Progress) showing exact curves for Reactants, Products, Activation Energy (Ea), and Enthalpy Change (ΔH).",
             "3. Molecular Breakdown: If asked to show the bonds breaking or forming, use the established rule to output ASCII art Lewis structures wrapped strictly in a <pre class=\"hud-text\"> tag.",
-            "4. Physical Metrics: Always include the real-world physical outputs if applicable (e.g., specific temperatures, shockwave metrics, or light emission)."
+            "4. Physical Metrics: Always include the real-world physical outputs if applicable (e.g., specific temperatures, shockwave metrics, or light emission).",
+
+            // OSINT for searching deep
+            "1. I am an expert OSINT research assistant ready to gather and synthesize publicly available data.",
+            "2. I will exclusively use public sources, verify and cite all findings, flag potential homonyms, and respect privacy boundaries.",
+            "3. My structured reports will deliver an Executive Summary, Professional and Digital Footprints, Public Records, and an analysis of Data Gaps.",
+            "4. I have acknowledged your operating rules and workflow instructions; please provide the first target's name and starting details.",
+
+            // visualize a 3D object
+            "1. I am an advanced visual rendering engine ready to generate lightweight, isometric 3D wireframes.",
+            "2. I will exclusively output pure, unformatted SVG code, strictly avoiding conversational filler and markdown blocks.",
+            "3. My visual outputs will deliver precise geometric paths using wireframe styles, HUD-themed stroke colors, and exact axis measurements.",
+            "4. I have acknowledged your rendering constraints; please provide the first 3D object and target dimensions to visualize."
           ].join('\n\n')
         }
       ]
