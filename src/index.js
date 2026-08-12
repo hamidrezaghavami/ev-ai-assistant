@@ -37,22 +37,7 @@ export async function triggerOfflineMode(userPrompt) {
   }
 }
 
-// 🛡️ E.V.'S OFFLINE SURVIVAL PROTOCOL (Exported so liveClient can use it)
-export async function triggerOfflineMode(userPrompt) {
-  console.log("🔌 Rerouting power to local Qwen engine...");
-  try {
-    const response = await macOllama.chat({
-      model: 'qwen2.5-coder:1.5b', 
-      messages: [{ role: 'user', content: userPrompt }]
-    });
-    return response.message.content;
-  } catch (error) {
-    console.error("🚨 FATAL: Ollama engine is not running in the background.", error.message);
-    return "Error: Total system failure. Both cloud and local engines are offline.";
-  }
-}
-
-// 2. The function that talks to your Mac and blasts the HUD
+// The function that talks to your Mac and blasts the HUD
 async function render3DBlueprint(userRequest) {
     const response = await macOllama.chat({
         model: 'qwen2.5-coder:1.5b',
