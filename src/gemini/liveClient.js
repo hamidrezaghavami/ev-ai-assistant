@@ -404,14 +404,17 @@ export class EVLiveClient {
       try {
         const script = `
           tell application "System Events"
-            if exists (processes where name is "Google Chrome") then
-              tell application "Google Chrome" to execute front window's active tab javascript "document.body.innerText"
-            else if exists (processes where name is "Safari") then
-              tell application "Safari" to do JavaScript "document.body.innerText" in front document
-            else
-              return "Error: No supported browser running."
-            end if
+            set chromeRunning to exists (processes where name is "Google Chrome")
+            set safariRunning to exists (processes where name is "Safari")
           end tell
+          
+          if chromeRunning then
+            tell application "Google Chrome" to return execute javascript "document.body.innerText" of active tab of front window
+          else if safariRunning then
+            tell application "Safari" to return do JavaScript "document.body.innerText" in front document
+          else
+            return "Error: No supported browser running."
+          end if
         `;
         
         // 🔥 THE FIX: Pass the script as an input stream to bypass Bash parsing entirely
