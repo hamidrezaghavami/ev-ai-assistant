@@ -20,7 +20,7 @@ export { evToolsDeclaration };
 const hudClients = new Set();
 
 // E.V. routed directly to your Mac's local Qwen engine
-const macOllama = new ollama.Ollama({ host: 'http://192.168.1.105:11434' });
+const macOllama = ollama.withOptions({ host: 'http://192.168.1.105:11434' });
 
 // E.V. instantly talks to your local offline model!
 const response = await ollama.chat({
