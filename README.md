@@ -22,7 +22,7 @@ Lightweight LLM: Utilizes `Qwen2.5-coder:1.5b`, a highly optimized `~1GB model` 
 # Design and Architecture:
 ```
 ┌───────────────────────────────────────────┐
-│              SAMSUNG PHONE                │
+│               SAMSUNG PHONE               │
 │    (React Native Voice & Visual HUD)      │
 └─────────────────────┬─────────────────────┘
                       │ WebSockets (Audio Stream + HUD Telemetry)
@@ -36,18 +36,18 @@ Lightweight LLM: Utilizes `Qwen2.5-coder:1.5b`, a highly optimized `~1GB model` 
 │          ┌──────────┴──────────┐          │
 │          ▼                     ▼          │
 │ ┌──────────────┐     ┌──────────────┐     │
-│ │ Safety Engine│     │  LLM Router  │     │
-│ │(Sandbox FS / │     │(Online/Local)│     │
+│ │ Safety Engine│     │ Gemini Live  │     │
+│ │(Sandbox FS / │     │ API Client   │     │
 │ │ AppleScript) │     └──────┬───────┘     │
 │ └──────┬───────┘            │             │
 └────────┼────────────────────┼─────────────┘
-         │            ┌───────┴───────┐
-         ▼            ▼               ▼
-┌──────────────────┐ ┌────────────┐ ┌───────────────┐
-│ ~/Desktop/       │ │Google      │ │Ollama (Local) │
-│   EV_Workspace/  │ │Gemini API  │ │Qwen2.5-Coder  │
-│ macOS System     │ │(Online)    │ │(Offline 1.5b) │
-└──────────────────┘ └────────────┘ └───────────────┘
+         │                    │
+         ▼                    ▼
+┌──────────────────┐ ┌──────────────────┐
+│ ~/Desktop/       │ │ Google           │
+│   EV_Workspace/  │ │ Gemini Live API  │
+│ macOS System     │ │ (Cloud Only)     │
+└──────────────────┘ └──────────────────┘
 ```
 ### Project Structure:
 ```
@@ -64,15 +64,13 @@ ev-ai-assistant/
     │   ├── fsSandbox.js   # Sandboxed file manager (desktop only)
     │   ├── browser.js     # macOS AppleScript tab controller
     │   └── schemas.js     # E.V. schema definitions and system prompts
-    └── llm_clients/
+    └── gemini/
         ├── index.html     # Movie-Style Visual UI (Dashboard)
         ├── liveClient.js  # WebSocket / Gemini Multimodal Live client (Online)
-        └── localClient.js # Ollama connection to Qwen2.5-coder:1.5b (Offline)
 ```
 1. ### Quick Start & Execution:
 *Prerequisites*
 *Docker installed on your host machine*
-*Ollama installed directly on the host Mac (not in Docker, to utilize native Apple Silicon hardware)*
 *A Google AI Studio / Gemini API Key*
 
 2. ### 2. Environment Setup:
@@ -86,19 +84,7 @@ Create a .env file in the root directory and add your Gemini API key:
 ```
 GEMINI_API_KEY=your_api_key_here
 ```
-3. ### Booting the Offline Engine (Mac Host Network):
-Because your Node.js backend will run isolated inside a Docker container, Ollama must be exposed so the container can communicate with the Mac host over the local network.
-
-Run this in your Mac's terminal, then restart the Ollama app:
-```
-launchctl setenv OLLAMA_HOST "0.0.0.0"
-```
-
-Pre-load the lightweight Qwen coder model into your Mac's memory:
-```
-ollama run qwen2.5-coder:1.5b
-```
-4. ### 4. System Ignition (Dockerized):
+3. ### 3. System Ignition (Dockerized):
 Build and spin up the central Node.js daemon, WebSocket hub, and dual-LLM router using your Dockerfile:
 ```
 docker build -t ev-backend .
@@ -106,6 +92,6 @@ docker run -d -p 8081:8081 --env-file .env ev-backend
 ```
 The containerized server is now running and bound to `http://127.0.0.1:8081`.
 
-5. ### Launching the HUD
+4. ### Launching the HUD
 Desktop Dashboard: Open `src/gemini/index.html in your browser.
 Mobile Connection: Ensure your phone is on the same Wi-Fi network and navigate to your host machine's local IP (e.g., `http://192.168.1.105:8081`) to access the React Native voice `interface. E.V.` is now containerized and fully operational.

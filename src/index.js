@@ -22,12 +22,12 @@ const hudClients = new Set();
 // E.V. routed directly to your Mac's local Qwen engine
 const macOllama = new Ollama({ host: 'http://127.0.0.1:11434' });
 
-// 🛡️ E.V.'S OFFLINE SURVIVAL PROTOCOL
+// 🛡️ E.V.'S OFFLINE SURVIVAL PROTOCOL (Only ONE exists now!)
 export async function triggerOfflineMode(userPrompt) {
   console.log("🔌 Rerouting power to local Qwen engine...");
   try {
     const response = await macOllama.chat({
-      model: 'qwen2.5-coder:1.5b', // Your exact model tag
+      model: 'qwen2.5-coder:1.5b', 
       messages: [{ role: 'user', content: userPrompt }]
     });
     return response.message.content;

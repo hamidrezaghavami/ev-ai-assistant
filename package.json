@@ -22,7 +22,6 @@
   "dependencies": {
     "@google/genai": "^2.15.0",
     "cheerio": "^1.2.0",
-    "ollama": "^0.6.3",
     "ws": "^8.21.1"
   }
 }

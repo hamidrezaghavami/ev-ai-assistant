@@ -8,7 +8,6 @@ import { exec, execSync, spawn } from 'child_process';
 import { GlobalKeyboardListener } from 'node-global-key-listener';
 import readline from 'readline';
 import { text } from 'stream/consumers';
-import { triggerOfflineMode } from '../index.js';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
@@ -62,28 +61,16 @@ export class EVLiveClient {
       const rl = readline.createInterface({ input: process.stdin, output: process.stdout });      
       
       rl.on('line', (input) => {
-        // STRATEGY A: Cloud connection is active
         if (this.ws && this.ws.readyState === 1) {
-          try {
-            this.ws.send(JSON.stringify({
-              clientContent: {
-                turns: [{ role: "user", parts: [{ text: input }] }],
-                turnComplete: true
-              }
-            }));
-            console.log(`📤 Sent to E.V. [CLOUD]: "${input}"`);
-          } catch (err) {
-            // Failsafe if the socket crashes mid-send
-            console.log(`⚠️ Cloud link snapped mid-transmission! Routing to offline engine...`);
-            const offlineResponse = await triggerOfflineMode(input);
-            console.log(`🤖 E.V. [OFFLINE]: ${offlineResponse}`);
-          }
-        } 
-        // STRATEGY B: Socket is totally dead, route straight to Qwen
-        else {
-          console.log(`🔌 Cloud connection severed. Firing up local Qwen engine...`);
-          const offlineResponse = await triggerOfflineMode(input);
-          console.log(`🤖 E.V. [OFFLINE]: ${offlineResponse}`);
+          this.ws.send(JSON.stringify({
+            clientContent: {
+              turns: [{ role: "user", parts: [{ text: input }] }],
+              turnComplete: true
+            }
+          }));
+          console.log(`📤 Sent to E.V.: "${input}"`);
+        } else {
+          console.log(`⚠️ E.V. is currently disconnected from the cloud network.`);
         }
       });
     });
