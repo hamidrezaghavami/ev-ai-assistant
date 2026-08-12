@@ -20,7 +20,22 @@ export { evToolsDeclaration };
 const hudClients = new Set();
 
 // E.V. routed directly to your Mac's local Qwen engine
-const macOllama = new Ollama({ host: 'http://192.168.1.105:11434' });
+const macOllama = new Ollama({ host: 'http://127.0.0.1:11434' });
+
+// 🛡️ E.V.'S OFFLINE SURVIVAL PROTOCOL
+export async function triggerOfflineMode(userPrompt) {
+  console.log("🔌 Rerouting power to local Qwen engine...");
+  try {
+    const response = await macOllama.chat({
+      model: 'qwen2.5-coder:1.5b', // Your exact model tag
+      messages: [{ role: 'user', content: userPrompt }]
+    });
+    return response.message.content;
+  } catch (error) {
+    console.error("🚨 FATAL: Ollama engine is not running in the background.", error.message);
+    return "Error: Total system failure. Both cloud and local engines are offline.";
+  }
+}
 
 // E.V. instantly talks to your local offline model!
 // Move this INSIDE an offline routing function, NOT in your startup code!
