@@ -12,15 +12,11 @@ import { initWorkspace, writeWorkspaceFile, readWorkspaceFile, deleteWorkspaceFi
 import { openBrowserTab, closeActiveBrowserTab } from './tools/browser.js';
 import { evToolsDeclaration } from './tools/schemas.js';
 import { EVLiveClient } from './gemini/liveClient.js';
-import { Ollama } from 'ollama';
 
 export { evToolsDeclaration };
 
 // --- HUD Server & Telemetry Setup ---
 const hudClients = new Set();
-
-// E.V. routed directly to your Mac's local Qwen engine
-const macOllama = new Ollama({ host: 'http://127.0.0.1:11434' });
 
 // 🛡️ E.V.'S OFFLINE SURVIVAL PROTOCOL (Only ONE exists now!)
 export async function triggerOfflineMode(userPrompt) {
