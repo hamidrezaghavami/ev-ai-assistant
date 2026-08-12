@@ -241,7 +241,23 @@ export class EVLiveClient {
     },
     // 🚨 STRICT STRUCTURE: One "tools" array containing exactly one object with "functionDeclarations"
     tools: [{
-      functionDeclarations: rawFunctions
+      functionDeclarations: [
+        ...rawFunctions,
+        {
+          name: "renderToHUD",
+          description: "Renders pure HTML, CSS, or SVG directly to the user's visual dashboard. Use this automatically whenever the user asks to see an interface, model, or visual data.",
+          parameters: {
+            type: "OBJECT",
+            properties: {
+              htmlContent: {
+                type: "STRING",
+                description: "The raw, unformatted HTML/CSS/SVG code to inject into the dashboard."
+              }
+            },
+            required: ["htmlContent"]
+          }
+        }
+      ]
     }]
   }
 };
