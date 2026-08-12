@@ -12,7 +12,7 @@ import { initWorkspace, writeWorkspaceFile, readWorkspaceFile, deleteWorkspaceFi
 import { openBrowserTab, closeActiveBrowserTab } from './tools/browser.js';
 import { evToolsDeclaration } from './tools/schemas.js';
 import { EVLiveClient } from './gemini/liveClient.js';
-import ollama from 'ollama';
+import { Ollama } from 'ollama';
 
 export { evToolsDeclaration };
 
@@ -20,7 +20,7 @@ export { evToolsDeclaration };
 const hudClients = new Set();
 
 // E.V. routed directly to your Mac's local Qwen engine
-const macOllama = ollama.withOptions({ host: 'http://192.168.1.105:11434' });
+const macOllama = new Ollama({ host: 'http://192.168.1.105:11434' });
 
 // E.V. instantly talks to your local offline model!
 const response = await ollama.chat({
