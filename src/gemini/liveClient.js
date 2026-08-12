@@ -414,7 +414,8 @@ export class EVLiveClient {
           end tell
         `;
         
-        const pageText = execSync(`osascript -e '${script}'`, { encoding: 'utf-8' });
+        // 🔥 THE FIX: Pass the script as an input stream to bypass Bash parsing entirely
+        const pageText = execSync('osascript', { input: script, encoding: 'utf-8' });
         console.log(`\n👁️ E.V. is reading the active browser tab...`);
         
         return { status: "success", content: pageText.substring(0, 15000) };
