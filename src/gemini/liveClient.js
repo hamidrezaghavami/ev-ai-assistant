@@ -409,9 +409,15 @@ export class EVLiveClient {
           end tell
           
           if chromeRunning then
-            tell application "Google Chrome" to tell active tab of front window to execute javascript "document.body.innerText"
+            tell application "Google Chrome"
+              set pageText to execute front window's active tab javascript "document.body.innerText"
+              return pageText
+            end tell
           else if safariRunning then
-            tell application "Safari" to tell front document to do JavaScript "document.body.innerText"
+            tell application "Safari"
+              set pageText to do JavaScript "document.body.innerText" in front document
+              return pageText
+            end tell
           else
             return "Error: No supported browser running."
           end if
