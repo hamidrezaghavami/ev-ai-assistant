@@ -23,7 +23,7 @@ const hudClients = new Set();
 const macOllama = new Ollama({ host: 'http://192.168.1.105:11434' });
 
 // E.V. instantly talks to your local offline model!
-const response = await ollama.chat({
+const response = await macOllama.chat({
     model: 'qwen2.5-coder:1.5b',
     messages: [{ role: 'user', content: 'System link established. E.V., acknowledge connection.' }]
 });
