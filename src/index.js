@@ -12,11 +12,39 @@ import { initWorkspace, writeWorkspaceFile, readWorkspaceFile, deleteWorkspaceFi
 import { openBrowserTab, closeActiveBrowserTab } from './tools/browser.js';
 import { evToolsDeclaration } from './tools/schemas.js';
 import { EVLiveClient } from './gemini/liveClient.js';
+import Ollama from 'ollama';
 
 export { evToolsDeclaration };
 
 // --- HUD Server & Telemetry Setup ---
 const hudClients = new Set();
+
+// E.V. routed directly to your Mac's local Qwen engine
+const macOllama = new Ollama({ host: 'http://192.168.1.105:11434' });
+
+// E.V. instantly talks to your local offline model!
+const response = await ollama.chat({
+    model: 'qwen2.5-coder:1.5b',
+    messages: [{ role: 'user', content: 'System link established. E.V., acknowledge connection.' }]
+});
+
+console.log(response.message.content);
+
+// 2. The function that talks to your Mac and blasts the HUD
+async function render3DBlueprint(userRequest) {
+    const response = await macOllama.chat({
+        model: 'qwen2.5-coder:1.5b',
+        messages: [
+            { role: 'system', content: svgSystemPrompt },
+            { role: 'user', content: userRequest }
+        ]
+    });
+
+    const rawSvgCode = response.message.content;
+    
+    // 3. Send it straight through your existing WebSocket server
+    webSocketServer.send(JSON.stringify({ type: 'blueprint', data: rawSvgCode }));
+}
 
 export function broadcastHUD(payload) {
   if (hudClients.size > 0) {
