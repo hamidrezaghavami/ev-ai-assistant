@@ -398,17 +398,17 @@ export class EVLiveClient {
       }
     }
 
-    // 👁️ READ ACTIVE BROWSER TAB 
+    // 👁️ READ ACTIVE BROWSER TAB (Brave & Safari Support)
     if (name === 'readActiveBrowserTab') {
       try {
         const script = `
           tell application "System Events"
-            set chromeRunning to exists (processes where name is "Google Chrome")
+            set braveRunning to exists (processes where name is "Brave Browser")
             set safariRunning to exists (processes where name is "Safari")
           end tell
           
-          if chromeRunning then
-            tell application "Google Chrome"
+          if braveRunning then
+            tell application "Brave Browser"
               set pageText to execute front window's active tab javascript "document.body.innerText"
               return pageText
             end tell
@@ -422,13 +422,12 @@ export class EVLiveClient {
           end if
         `;
         
-        // 🔥 THE FIX: Pass the script as an input stream to bypass Bash parsing entirely
         const pageText = execSync('osascript', { input: script, encoding: 'utf-8' });
         console.log(`\n👁️ E.V. is reading the active browser tab...`);
         
         return { status: "success", content: pageText.substring(0, 15000) };
       } catch (err) {
-        return { status: "error", message: `Failed to read tab. Ensure Chrome/Safari is open. Error: ${err.message}` };
+        return { status: "error", message: `Failed to read tab. Error: ${err.message}` };
       }
     }
     if (this.externalToolHandler) {
