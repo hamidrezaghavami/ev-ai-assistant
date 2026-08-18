@@ -409,7 +409,9 @@ export class EVLiveClient {
           
           if braveRunning then
             tell application "Brave Browser"
-              set pageText to execute front window's active tab javascript "document.body.innerText"
+              tell active tab of front window
+                set pageText to execute javascript "document.body.innerText"
+              end tell
               return pageText
             end tell
           else if safariRunning then
@@ -421,6 +423,9 @@ export class EVLiveClient {
             return "Error: No supported browser running."
           end if
         `;
+        
+        // Make sure you require 'child_process' if execSync isn't imported at the top of your file!
+        const { execSync } = await import('child_process');
         
         const pageText = execSync('osascript', { input: script, encoding: 'utf-8' });
         console.log(`\n👁️ E.V. is reading the active browser tab...`);
