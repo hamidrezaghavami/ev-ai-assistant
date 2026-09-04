@@ -1,0 +1,6 @@
+{
+  "plugins": [
+    "expo-speech-recognition",
+    "expo-status-bar"
+  ]
+}
