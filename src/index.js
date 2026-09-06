@@ -85,14 +85,16 @@ const toolMap = {
   display_on_hud: async (args) => {
     console.log("🚨 INCOMING ARGS FROM E.V.:", args);
     
-    // 🛡️ THE SMART LOCK: If the HUD isn't connected yet, wait up to 5 seconds!
+    // 🛡️ THE SMART LOCK: If the HUD isn't connected, FORCE IT OPEN automatically!
     if (hudClients.size === 0) {
-      console.log("⏳ E.V. is waiting for the HUD to boot up and connect...");
+      console.log("⚠️ HUD is closed! Auto-launching Safari to catch the data...");
+      exec('open http://127.0.0.1:8082'); // This requires the 'exec' import at the top of your file
+      
+      console.log("⏳ Waiting for HUD to boot up and connect...");
       await new Promise(resolve => {
         let attempts = 0;
         const checkInterval = setInterval(() => {
           attempts++;
-          // Check every 200ms if Safari has connected, or give up after 5 seconds
           if (hudClients.size > 0 || attempts > 25) { 
             clearInterval(checkInterval);
             resolve();
