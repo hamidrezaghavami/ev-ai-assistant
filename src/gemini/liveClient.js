@@ -1,13 +1,11 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import { evToolsDeclaration } from '../tools/schemas.js';
-import record from 'node-record-lpcm16';
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import { exec, execSync, spawn } from 'child_process';
 import { GlobalKeyboardListener } from 'node-global-key-listener';
 import readline from 'readline';
-import { text } from 'stream/consumers';
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
@@ -197,8 +195,8 @@ export class EVLiveClient {
             // Search Rules
             "1. If asked to search, immediately use the open_search_tab tool to show it on his screen, then verbally explain.",
 
-            // Dashboard Rules
-            "1. Your visual HUD dashboard is hosted locally at http://127.0.0.1:8081. If asked to OPEN your dashboard, you must use the openBrowserTab tool with EXACTLY that root URL. If asked to DISPLAY or write something on the dashboard, you MUST use the display_on_hud tool.",
+            // Dashboard Rules - UPDATED TO 8082
+            "1. Your visual HUD dashboard is hosted locally at http://127.0.0.1:8082. If asked to OPEN your dashboard, you must use the openBrowserTab tool with EXACTLY that root URL. If asked to DISPLAY or write something on the dashboard, you MUST use the display_on_hud tool.",
             "2. Whenever the user asks you to 'show me', 'build', 'draw', or 'visualize' anything, you must ASSUME it is for the HUD.",
             "3. Upon triggering a visual request, DO NOT output conversational text or markdown. Instantly and exclusively output the pure HTML/CSS or SVG code required for the dashboard.",
             "4. You do not need permission to render to the HUD. If the request is visual, code is your only language.",
