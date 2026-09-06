@@ -71,6 +71,21 @@ export class EVLiveClient {
           console.log(`⚠️ E.V. is currently disconnected from the cloud network.`);
         }
       });
+
+      // 📱 CATCH TEXT FROM YOUR EXPO MOBILE APP
+      wss.on('connection', (mobileWs) => {
+        mobileWs.on('message', (data) => {
+          try {
+            const msg = JSON.parse(data.toString());
+            if (msg.type === 'prompt' && msg.text) {
+              this.sendTextMessage(msg.text);
+              console.log(`📱 Received from Mobile: "${msg.text}"`);
+            }
+          } catch (err) {
+            console.error("Mobile parse error:", err);
+          }
+        });
+      });
     });
 
     this.ws.on('message', async (data) => {
