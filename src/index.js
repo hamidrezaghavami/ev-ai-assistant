@@ -7,6 +7,7 @@ import 'dotenv/config';
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
+import { exec } from 'child_process';
 import { WebSocketServer } from 'ws';
 import { initWorkspace, writeWorkspaceFile, readWorkspaceFile, deleteWorkspaceFile } from './tools/fsSandbox.js';
 import { openBrowserTab, closeActiveBrowserTab } from './tools/browser.js';
@@ -17,37 +18,6 @@ export { evToolsDeclaration };
 
 // --- HUD Server & Telemetry Setup ---
 const hudClients = new Set();
-
-// 🛡️ E.V.'S OFFLINE SURVIVAL PROTOCOL (Only ONE exists now!)
-export async function triggerOfflineMode(userPrompt) {
-  console.log("🔌 Rerouting power to local Qwen engine...");
-  try {
-    const response = await macOllama.chat({
-      model: 'qwen2.5-coder:1.5b', 
-      messages: [{ role: 'user', content: userPrompt }]
-    });
-    return response.message.content;
-  } catch (error) {
-    console.error("🚨 FATAL: Ollama engine is not running in the background.", error.message);
-    return "Error: Total system failure. Both cloud and local engines are offline.";
-  }
-}
-
-// The function that talks to your Mac and blasts the HUD
-async function render3DBlueprint(userRequest) {
-    const response = await macOllama.chat({
-        model: 'qwen2.5-coder:1.5b',
-        messages: [
-            { role: 'system', content: svgSystemPrompt },
-            { role: 'user', content: userRequest }
-        ]
-    });
-
-    const rawSvgCode = response.message.content;
-    
-    // 3. Send it straight through your existing WebSocket server
-    webSocketServer.send(JSON.stringify({ type: 'blueprint', data: rawSvgCode }));
-}
 
 export function broadcastHUD(payload) {
   if (hudClients.size > 0) {
@@ -89,8 +59,10 @@ function startHUDServer() {
 
   console.log('---> ATTEMPTING TO START HUD SERVER <---');
 
-  server.listen(8082, '127.0.0.1', () => {
-    console.log('🚀 HUD Dashboard running at http://127.0.0.1:8082');
+  server.listen(8082, '0.0.0.0', () => {
+    console.log('🚀 HUD Dashboard running at http://127.0.0.1:8082 (and accessible across local network)');
+    // Auto-open Safari so you don't have to change URLs
+    exec('open http://127.0.0.1:8082');
   });
 }
 
