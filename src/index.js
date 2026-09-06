@@ -89,8 +89,8 @@ function startHUDServer() {
 
   console.log('---> ATTEMPTING TO START HUD SERVER <---');
 
-  server.listen(8081, '127.0.0.1', () => {
-    console.log('🚀 HUD Dashboard running at http://127.0.0.1:8081');
+  server.listen(8082, '127.0.0.1', () => {
+    console.log('🚀 HUD Dashboard running at http://127.0.0.1:8082');
   });
 }
 
