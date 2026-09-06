@@ -61,8 +61,6 @@ function startHUDServer() {
 
   server.listen(8082, '0.0.0.0', () => {
     console.log('🚀 HUD Dashboard running at http://127.0.0.1:8082 (and accessible across local network)');
-    // Auto-open Safari so you don't have to change URLs
-    exec('open http://127.0.0.1:8082');
   });
 }
 

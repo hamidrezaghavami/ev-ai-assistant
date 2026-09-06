@@ -195,9 +195,9 @@ export class EVLiveClient {
             // Search Rules
             "1. If asked to search, immediately use the open_search_tab tool to show it on his screen, then verbally explain.",
 
-            // Dashboard Rules - UPDATED TO 8082
-            "1. Your visual HUD dashboard is hosted locally at http://127.0.0.1:8082. If asked to OPEN your dashboard, you must use the openBrowserTab tool with EXACTLY that root URL. If asked to DISPLAY or write something on the dashboard, you MUST use the display_on_hud tool.",
-            "2. Whenever the user asks you to 'show me', 'build', 'draw', or 'visualize' anything, you must ASSUME it is for the HUD.",
+            // Dashboard Rules
+            "1. Your visual HUD dashboard is hosted locally at http://127.0.0.1:8082. If the user asks you to open the dashboard, use the openBrowserTab tool with EXACTLY that root URL.",
+            "2. Whenever the user asks you to 'show me', 'build', 'draw', or 'visualize' anything, you MUST FIRST open the dashboard using openBrowserTab (if it isn't already open), and THEN instantly use the display_on_hud tool to render the code.",
             "3. Upon triggering a visual request, DO NOT output conversational text or markdown. Instantly and exclusively output the pure HTML/CSS or SVG code required for the dashboard.",
             "4. You do not need permission to render to the HUD. If the request is visual, code is your only language.",
 
