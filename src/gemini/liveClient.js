@@ -195,7 +195,7 @@ export class EVLiveClient {
             // Search Rules
             "1. If asked to search, immediately use the open_search_tab tool to show it on his screen, then verbally explain.",
 
-            // Dashboard Rules
+            // Dashboard Rules - UPDATED TO 8082 WITH AUTO-LAUNCH LOGIC
             "1. Your visual HUD dashboard is hosted locally at http://127.0.0.1:8082. If the user asks you to open the dashboard, use the openBrowserTab tool with EXACTLY that root URL.",
             "2. Whenever the user asks you to 'show me', 'build', 'draw', or 'visualize' anything, you MUST FIRST open the dashboard using openBrowserTab (if it isn't already open), and THEN instantly use the display_on_hud tool to render the code.",
             "3. Upon triggering a visual request, DO NOT output conversational text or markdown. Instantly and exclusively output the pure HTML/CSS or SVG code required for the dashboard.",
@@ -269,17 +269,6 @@ export class EVLiveClient {
       console.log('\n🔴 Shutdown sequence initiated by E.V...');
       this.pendingShutdown = true;
       return { status: "success", message: "System ready to power off." };
-    }
-
-    if (name === 'switch_model') {
-      const isPro = args.targetModel === 'pro';
-      this.currentModel = isPro ? 'models/gemini-1.5-pro' : 'models/gemini-1.5-flash';
-      console.log(`\n🔄 Switching E.V. engine to: ${this.currentModel}`);
-      
-      this.ws.close();
-      setTimeout(() => this.connect(), 500); 
-      
-      return { status: "success", message: `Engine swapped to ${this.currentModel}.` };
     }
 
     // 📝 WRITE / UPDATE FILE
