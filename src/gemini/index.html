@@ -294,7 +294,11 @@
         resizeCanvas();
 
         // --- WebSocket Handshake ---
+<<<<<<< HEAD
+        const ws = new WebSocket('ws://127.0.0.1:8082');
+=======
         const ws = new WebSocket('ws://127.0.0.1:8082'); // 🚨 PORT 8082 IS LOCKED IN HERE! 🚨
+>>>>>>> 35864c9b4fc209f5a11b94344f53b95cfe5ca657
 
         ws.onopen = () => {
             const statusEl = document.getElementById('ws-status');
