@@ -16,18 +16,30 @@ const WORKSPACE_DIR = path.resolve(os.homedir(), 'Desktop', 'EV_Workspace');
 
 // --- Start the local UI Server Handshake ---
 const wss = new WebSocketServer({ port: 8080 });
-let uiClient = null;
+let globalEV = null;
 
 wss.on('connection', (ws) => {
-  console.log('✅ Visual HUD Connected!');
-  uiClient = ws;
+  console.log('✅ New Device Connected to Network (Port 8080)!');
+  
+  // Catch incoming text from the mobile app
+  ws.on('message', (data) => {
+    try {
+      const msg = JSON.parse(data.toString());
+      if (msg.type === 'prompt' && msg.text) {
+        console.log(`📱 Phone says: "${msg.text}"`);
+        if (globalEV) globalEV.sendTextMessage(msg.text); // Send to Gemini!
+      }
+    } catch (err) { }
+  });
 });
 
-// Helper function to send data to the HUD
+// Broadcast E.V.'s replies back to ALL screens (HUD + Mobile)
 function sendToHUD(type, payload) {
-  if (uiClient && uiClient.readyState === WebSocket.OPEN) {
-    uiClient.send(JSON.stringify({ type: type, ...payload }));
-  }
+  wss.clients.forEach(client => {
+    if (client.readyState === 1) { // 1 = OPEN
+      client.send(JSON.stringify({ type: type, ...payload }));
+    }
+  });
 }
 
 export class EVLiveClient {
@@ -44,6 +56,7 @@ export class EVLiveClient {
   }
 
   connect() {
+    globalEV = this;
     if (!API_KEY) {
       console.error('❌ Error: GEMINI_API_KEY is not set.');
       process.exit(1);
@@ -70,6 +83,21 @@ export class EVLiveClient {
         } else {
           console.log(`⚠️ E.V. is currently disconnected from the cloud network.`);
         }
+      });
+
+      // 📱 CATCH TEXT FROM YOUR EXPO MOBILE APP
+      wss.on('connection', (mobileWs) => {
+        mobileWs.on('message', (data) => {
+          try {
+            const msg = JSON.parse(data.toString());
+            if (msg.type === 'prompt' && msg.text) {
+              this.sendTextMessage(msg.text);
+              console.log(`📱 Received from Mobile: "${msg.text}"`);
+            }
+          } catch (err) {
+            console.error("Mobile parse error:", err);
+          }
+        });
       });
     });
 
