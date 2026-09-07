@@ -189,7 +189,7 @@ export class EVLiveClient {
   setup: {
     model: this.currentModel,
     generationConfig: {
-      responseModalities: ['AUDIO'],
+      responseModalities: ['TEXT', 'AUDIO'],
       speechConfig: {
         voiceConfig: {
           prebuiltVoiceConfig: { voiceName: 'Kore' }
@@ -562,14 +562,21 @@ export class EVLiveClient {
           this.playAudioSafe(audioBuffer);
         }
         if (part.text) {
-          console.log(`\n💬 E.V. says: ${part.text}`);
-          if (typeof sendToHUD !== 'undefined') sendToHUD('transcript', { text: part.text });
+          if (!this.textBuffer) this.textBuffer = '';
+          this.textBuffer += part.text;
         }
       }
     }
     
     if (message.serverContent?.turnComplete) {
-      console.log('✅ E.V. finished responding.\n');
+      console.log('\n✅ E.V. finished responding.\n');
+      
+      // 2️⃣ Blast the FULL completed sentence to the phone so it speaks smoothly!
+      if (this.textBuffer && typeof sendToHUD !== 'undefined') {
+        console.log(`💬 E.V. Sent to Phone: ${this.textBuffer}`);
+        sendToHUD('transcript', { text: this.textBuffer });
+        this.textBuffer = ''; // Clear for her next reply
+      }
       
       if (this.pendingShutdown) {
         console.log('⚡ E.V. is offline.');
