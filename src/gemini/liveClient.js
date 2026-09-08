@@ -189,13 +189,14 @@ export class EVLiveClient {
   setup: {
     model: this.currentModel,
     generationConfig: {
-      responseModalities: ['TEXT', 'AUDIO'],
+      responseModalities: ['AUDIO'],
       speechConfig: {
         voiceConfig: {
           prebuiltVoiceConfig: { voiceName: 'Kore' }
         }
       }
     },
+    outputAudioTranscription: {},
     systemInstruction: {
       parts: [
         {
