@@ -27,7 +27,10 @@ wss.on('connection', (ws) => {
       const msg = JSON.parse(data.toString());
       if (msg.type === 'prompt' && msg.text) {
         console.log(`📱 Phone says: "${msg.text}"`);
-        if (globalEV) globalEV.sendTextMessage(msg.text); // Send to Gemini!
+        if (globalEV) {
+          globalEV.originDevice = 'mobile';
+          globalEV.sendTextMessage(msg.text);
+        }
       }
     } catch (err) { }
   });
@@ -565,8 +568,10 @@ export class EVLiveClient {
         }
         
         if (part.inlineData && part.inlineData.mimeType.startsWith('audio/')) {
-          const audioBuffer = Buffer.from(part.inlineData.data, 'base64');
-          this.playAudioSafe(audioBuffer);
+          if (this.originDevice !== 'mobile') {
+            const audioBuffer = Buffer.from(part.inlineData.data, 'base64');
+            this.playAudioSafe(audioBuffer);
+          }
         }
         if (part.text) {
           if (!this.textBuffer) this.textBuffer = '';
@@ -577,7 +582,7 @@ export class EVLiveClient {
     
     if (message.serverContent?.turnComplete) {
       console.log('\n✅ E.V. finished responding.\n');
-      
+      this.originDevice = 'mac';
       // 2️⃣ Blast the FULL completed sentence to the phone so it speaks smoothly!
       if (this.textBuffer && typeof sendToHUD !== 'undefined') {
         console.log(`💬 E.V. Sent to Phone: ${this.textBuffer}`);
