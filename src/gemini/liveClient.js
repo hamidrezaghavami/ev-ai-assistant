@@ -23,17 +23,24 @@ wss.on('connection', (ws) => {
   
   // Catch incoming text from the mobile app
   ws.on('message', (data) => {
-    try {
-      const msg = JSON.parse(data.toString());
-      if (msg.type === 'prompt' && msg.text) {
-        console.log(`📱 Phone says: "${msg.text}"`);
-        if (globalEV) {
-          globalEV.originDevice = 'mobile';
-          globalEV.sendTextMessage(msg.text);
-        }
-      }
-    } catch (err) { }
-  });
+  try {
+    const msg = JSON.parse(data.toString());
+    
+    // Normal conversation
+    if (msg.type === 'prompt' && msg.text) {
+      if (globalEV) globalEV.sendTextMessage(msg.text);
+    }
+    
+    // 🎯 THE OSINT TRIGGER
+    if (msg.type === 'osint_trigger' && msg.target) {
+      console.log(`\n🎯 MOBILE OVERRIDE: OSINT Target Locked -> ${msg.target}`);
+      
+      const tacticalPrompt = `Initiate OSINT vetting pipeline for target: ${msg.target}. Open the dashboard and render the Company Legitimacy Rating and Tech-Match Analysis immediately to the HUD.`;
+      
+      if (globalEV) globalEV.sendTextMessage(tacticalPrompt);
+    }
+  } catch (err) { }
+});
 });
 
 // Broadcast E.V.'s replies back to ALL screens (HUD + Mobile)
