@@ -576,6 +576,7 @@ export class EVLiveClient {
         if (part.text) {
           if (!this.textBuffer) this.textBuffer = '';
           this.textBuffer += part.text;
+          console.log(`💬 E.V. chunk: ${part.text}`);
         }
       }
     }
@@ -583,11 +584,12 @@ export class EVLiveClient {
     if (message.serverContent?.turnComplete) {
       console.log('\n✅ E.V. finished responding.\n');
       this.originDevice = 'mac';
+
       // 2️⃣ Blast the FULL completed sentence to the phone so it speaks smoothly!
       if (this.textBuffer && typeof sendToHUD !== 'undefined') {
         console.log(`💬 E.V. Sent to Phone: ${this.textBuffer}`);
         sendToHUD('transcript', { text: this.textBuffer });
-        this.textBuffer = ''; // Clear for her next reply
+        this.textBuffer = '';
       }
       
       if (this.pendingShutdown) {
