@@ -524,6 +524,12 @@ export class EVLiveClient {
       }
     }
 
+    // Live API streaming audio transcript format
+    if (message.serverContent?.outputAudioTranscription?.text) {
+      if (!this.textBuffer) this.textBuffer = '';
+      this.textBuffer += message.serverContent.outputAudioTranscription.text;
+    }
+
     // 🛠️ CATCH AND EXECUTE TOOL CALLS (STANDARD API FORMAT) & AUDIO/TEXT
     if (message.serverContent?.modelTurn?.parts) {
       
