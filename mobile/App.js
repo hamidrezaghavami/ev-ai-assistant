@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+// 🛠️ FIX: Import SafeAreaView from the modern context package
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as Speech from 'expo-speech'; 
 
-// YOUR MACBOOK'S WI-FI IP (Update if needed!)
 const MAINFRAME_IP = '192.168.1.105';
 const WS_URL = `ws://${MAINFRAME_IP}:8080`;
 
@@ -22,30 +23,32 @@ export default function App() {
     ws.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
-        
-        // 💬 Catch the transcript from Mac
+        // 💬 Catch the transcript and render it to the tactical log
         if (data.type === 'transcript' && data.text) {
-          setMessages((prev) => [...prev, { sender: 'EV', text: data.text }]);
-          
-          // 🔊 Speak through the phone speaker
+          setLogs((prev) => [...prev.slice(-20), `E.V.: ${data.text}`]);
           Speech.speak(data.text);
         }
       } catch (err) {
-        console.error('Failed to parse incoming WS message:', err);
+        console.error('WS Parse Error:', err);
       }
     };
 
     return () => ws.close();
   }, []);
 
+  const triggerOSINT = () => {
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({ type: 'osint_trigger', target: 'TargetCompany' }));
+      setLogs((prev) => [...prev.slice(-20), `[OSINT INITIATED - TARGET LOCKED]`]);
+    }
+  };
+
   const handleSend = () => {
     if (inputText.trim() && socketRef.current?.readyState === WebSocket.OPEN) {
-      // Stop E.V.'s current speech if you send a new command
       Speech.stop();
-      
       setLogs((prev) => [...prev.slice(-20), `YOU: ${inputText}`]);
       socketRef.current.send(JSON.stringify({ type: 'prompt', text: inputText }));
-      setInputText(''); // Clear box
+      setInputText(''); 
     }
   };
 
@@ -62,6 +65,11 @@ export default function App() {
           <Text style={[styles.statusText, { color: connected ? '#00FF66' : '#FF1A1A' }]}>
             {connected ? 'LINK: ONLINE' : 'LINK: OFFLINE'}
           </Text>
+          
+          {/* 🎯 OSINT TRIGGER BUTTON */}
+          <TouchableOpacity activeOpacity={0.7} onPress={triggerOSINT} style={styles.osintButton}>
+            <Text style={styles.buttonText}>INITIATE OSINT</Text>
+          </TouchableOpacity>
         </View>
 
         {/* RADAR / LOG VIEWER */}
@@ -77,7 +85,7 @@ export default function App() {
             style={styles.textInput}
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Type or use keyboard mic..."
+            placeholder="Type command..."
             placeholderTextColor="rgba(255, 26, 26, 0.5)"
             onSubmitEditing={handleSend}
           />
@@ -92,13 +100,14 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#050505', padding: 16 },
-  header: { borderWidth: 1, borderColor: '#FF1A1A', padding: 10, marginTop: 24, marginBottom: 10, backgroundColor: 'rgba(255, 26, 26, 0.05)' },
+  header: { borderWidth: 1, borderColor: '#FF1A1A', padding: 10, marginTop: 10, marginBottom: 10, backgroundColor: 'rgba(255, 26, 26, 0.05)' },
   headerTitle: { color: '#FF1A1A', fontFamily: 'monospace', fontWeight: 'bold', fontSize: 16, letterSpacing: 1.5 },
-  statusText: { fontFamily: 'monospace', fontSize: 12, marginTop: 4 },
+  statusText: { fontFamily: 'monospace', fontSize: 12, marginTop: 4, marginBottom: 10 },
+  osintButton: { backgroundColor: '#8B0000', padding: 10, alignItems: 'center', borderWidth: 1, borderColor: '#FF1A1A' },
   terminalContainer: { flex: 1, borderWidth: 1, borderColor: 'rgba(255, 26, 26, 0.3)', backgroundColor: 'rgba(0, 0, 0, 0.7)', padding: 10, marginBottom: 15 },
   terminalText: { color: '#FF4D4D', fontFamily: 'monospace', fontSize: 13, marginBottom: 6 },
   inputRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   textInput: { flex: 1, height: 50, borderWidth: 1, borderColor: '#FF1A1A', color: '#FFF', fontFamily: 'monospace', paddingHorizontal: 15, backgroundColor: 'rgba(255, 26, 26, 0.1)' },
   sendButton: { height: 50, width: 60, backgroundColor: '#FF1A1A', justifyContent: 'center', alignItems: 'center', marginLeft: 10 },
-  buttonText: { color: '#FFF', fontFamily: 'monospace', fontWeight: 'bold', fontSize: 16 },
+  buttonText: { color: '#FFF', fontFamily: 'monospace', fontWeight: 'bold', fontSize: 14 },
 });
