@@ -21,16 +21,17 @@ export default function App() {
     ws.onclose = () => setConnected(false);
     ws.onmessage = (e) => {
       try {
-        const msg = JSON.parse(e.data);
-        if (msg.text || msg.type === 'transcript') {
-          const replyText = msg.text || msg.message;
-          setLogs((prev) => [...prev.slice(-20), `E.V.: ${replyText}`]);
+        const data = JSON.parse(e.data);
+        
+        // 💬 Catch the transcript from Mac
+        if (data.type === 'transcript' && data.text) {
+          setMessages((prev) => [...prev, { sender: 'EV', text: data.text }]);
           
-          // 🗣️ E.V. Speaks from the phone!
-          Speech.speak(replyText, { pitch: 1.1, rate: 1.0 });
+          // 🔊 Speak through the phone speaker
+          Speech.speak(data.text);
         }
       } catch (err) {
-        setLogs((prev) => [...prev.slice(-20), `RAW: ${e.data}`]);
+        console.error('Failed to parse incoming WS message:', err);
       }
     };
 
