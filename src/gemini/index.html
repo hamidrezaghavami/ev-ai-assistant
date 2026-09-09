@@ -109,11 +109,12 @@
             height: 100%;
             display: grid;
             grid-template-columns: 3fr 1fr;
-            grid-template-rows: 40px 1fr 100px;
+            grid-template-rows: 40px 1fr; /* Removed 100px transcript row */
             gap: 15px;
             padding: 15px;
             position: relative;
             z-index: 10;
+            overflow: hidden;
         }
 
         .header {
@@ -134,7 +135,13 @@
             border: 1px solid rgba(0, 255, 255, 0.4);
             position: relative;
             background: rgba(0, 10, 20, 0.5);
-            overflow-y: auto; /* ⬅️ CHANGE THIS FROM 'hidden' */
+            overflow: hidden; /* Changed to handle zoom/pan internally */
+        }
+
+        #zoom-pan-container {
+            width: 100%;
+            height: 100%;
+            transform-origin: 0 0;
         }
 
         /* The actual canvas element where we will draw diagrams */
@@ -175,13 +182,54 @@
         /* Side panel for system telemetry */
         .telemetry-panel {
             grid-column: 2;
-            grid-row: 2 / 4;
+            grid-row: 2; /* Adjusted to fill available height */
             border: 1px solid rgba(0, 255, 255, 0.4);
             padding: 15px;
             font-size: 12px;
             display: flex;
             flex-direction: column;
             background: rgba(0, 20, 40, 0.2);
+        }
+
+        /* New UI Elements */
+        .memory-sidebar {
+            position: absolute;
+            left: -350px;
+            top: 0;
+            width: 350px;
+            height: 100%;
+            background: rgba(0, 10, 20, 0.95);
+            border-right: 1px solid #0ff;
+            transition: left 0.3s ease;
+            z-index: 100;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .memory-sidebar.active {
+            left: 0;
+        }
+
+        .controls-overlay {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 50;
+        }
+
+        .hud-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #0ff;
+            color: #0ff;
+            padding: 5px 15px;
+            cursor: pointer;
+            font-family: 'Share Tech Mono', monospace;
+            transition: 0.2s;
+        }
+        .hud-btn:hover {
+            background: #0ff;
+            color: #000;
         }
 
         .status-block {
@@ -229,6 +277,13 @@
 </head>
 <body>
 
+    <div class="memory-sidebar" id="memory-sidebar">
+        <h3 style="border-bottom: 1px solid #0ff; padding-bottom: 5px; margin-top:0;">MEMORY & LOGS</h3>
+        <div id="sidebar-content" style="font-size: 14px; margin-top: 15px; color: rgba(0, 255, 255, 0.8);">
+            > No local memory loaded. Use EV_workspace tools.
+        </div>
+    </div>
+
     <div class="hud-container">
         <div class="header">
             <span>ARM SCAN RESULTS // VISUAL DATA LINK</span>
@@ -236,28 +291,30 @@
         </div>
         
         <div class="main-display" id="visual-area">
-            
-            <!-- E.V.'s Main Visual Display Area -->
-            <div id="ev-display-screen" style="
-                border: 1px solid #0ff; 
-                padding: 20px; 
-                margin-top: 20px; 
-                color: #0ff; 
-                font-family: monospace; 
-                font-size: 1.2rem; 
-                white-space: pre-wrap; 
-                background-color: rgba(0, 255, 255, 0.05);
-            ">
-                > Awaiting visual data...
+            <div id="zoom-pan-container">
+                <!-- E.V.'s Main Visual Display Area -->
+                <div id="ev-display-screen" style="
+                    border: 1px solid #0ff; 
+                    padding: 20px; 
+                    margin-top: 20px; 
+                    color: #0ff; 
+                    font-family: monospace; 
+                    font-size: 1.2rem; 
+                    white-space: pre-wrap; 
+                    background-color: rgba(0, 255, 255, 0.05);
+                ">
+                    > Awaiting visual data...
+                </div>
+                <canvas id="hologram-canvas"></canvas>
             </div>
-            
-            <canvas id="hologram-canvas"></canvas>
+
+            <!-- Floating Controls Overlay -->
+            <div class="controls-overlay">
+                <button class="hud-btn" onclick="toggleSidebar()">[ MEMORY ]</button>
+                <button class="hud-btn" onclick="resetZoom()">[ RESET VIEW ]</button>
+            </div>
         </div>
 
-        <div class="transcript-panel" id="transcript-container">
-            > <span id="ev-transcript" style="margin-left: 10px;">Awaiting WebSocket connection...</span>
-        </div>
-        
         <div class="telemetry-panel">
             <div class="status-block">
                 <div class="status-line"><span>SYSTEM CORE:</span> <span>ONLINE</span></div>
@@ -295,8 +352,6 @@
             statusEl.innerText = 'CONNECTED';
             statusEl.style.color = '#00ffff';
             statusEl.style.textShadow = '0 0 5px #00ffff';
-            document.getElementById('ev-transcript').innerText = 'Data link established. Awaiting input.';
-            addLog("WebSocket link verified.");
         };
 
         ws.onmessage = (event) => {
@@ -358,6 +413,55 @@
             if (logs.children.length > 12) {
                 logs.removeChild(logs.firstChild);
             }
+        }
+
+        // --- Zoom, Pan & Sidebar Controls ---
+        let scale = 1;
+        let isDragging = false;
+        let startX, startY, translateX = 0, translateY = 0;
+        const zoomPanContainer = document.getElementById('zoom-pan-container');
+        const visualArea = document.getElementById('visual-area');
+
+        function updateTransform() {
+            zoomPanContainer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        }
+
+        visualArea.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomIntensity = 0.1;
+            scale += e.deltaY < 0 ? zoomIntensity : -zoomIntensity;
+            scale = Math.min(Math.max(0.3, scale), 5); // Limit zoom between 0.3x and 5x
+            updateTransform();
+        });
+
+        visualArea.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+            visualArea.style.cursor = 'grabbing';
+        });
+
+        visualArea.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+            updateTransform();
+        });
+
+        visualArea.addEventListener('mouseup', () => {
+            isDragging = false;
+            visualArea.style.cursor = 'default';
+        });
+        
+        visualArea.addEventListener('mouseleave', () => { isDragging = false; });
+
+        function resetZoom() {
+            scale = 1; translateX = 0; translateY = 0;
+            updateTransform();
+        }
+
+        function toggleSidebar() {
+            document.getElementById('memory-sidebar').classList.toggle('active');
         }
     </script>
 </body>
