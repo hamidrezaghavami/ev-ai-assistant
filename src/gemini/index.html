@@ -8,13 +8,7 @@
         };
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
-    <!-- Math Rendering Engine (You already have this) -->
-    <script>
-        MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] } };
-    </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
+    
     <!-- Software Architecture Diagram Engine (Add this!) -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script>
@@ -294,7 +288,7 @@
         resizeCanvas();
 
         // --- WebSocket Handshake ---
-        const ws = new WebSocket('ws://127.0.0.1:8080');
+        const ws = new WebSocket('ws://127.0.0.1:8082');
 
         ws.onopen = () => {
             const statusEl = document.getElementById('ws-status');
