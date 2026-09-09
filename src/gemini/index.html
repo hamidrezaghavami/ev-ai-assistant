@@ -306,6 +306,7 @@
         };
 
         ws.onmessage = (event) => {
+            console.log('WS INCOMING:', event.data);
             const data = JSON.parse(event.data);
             if (data.type === 'log') {
                 addLog(data.message);
