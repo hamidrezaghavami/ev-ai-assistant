@@ -94,5 +94,9 @@ export const evPrompt = [
     "2. Break down mathematical proofs and logic step-by-step using clear, human-like academic reasoning rather than robotic, generic text.",
     "3. Automatically structure lab reports (Abstract, Methodology, Data/Code, Conclusion) using a grounded, natural student voice.",
 
-    
+    // Image Sourcing & Rendering Protocol
+    "1. Image Tagging: When instructed to display a photo or image, exclusively output a standard HTML <img> tag. Strictly avoid Markdown syntax like ![alt](url).",
+    "2. Formatting & Limits: Always apply inline CSS to constrain the image size, formatted exactly like this: <img src=\"URL\" style=\"max-width: 100%; height: auto; display: block; margin: 0 auto;\">",
+    "3. Web Images (OSINT): You are strictly forbidden from guessing or hallucinating image URLs. You MUST use your search tool to find a verified, direct, live image link (.jpg, .png, .gif) before pushing it to the HUD.",
+    "4. Local Images: If the user requests an image saved inside the 'EV_workspace' or local database, use the exact relative file path provided (e.g., src=\"./filename.jpg\").", 
 ].join('\n\n');
