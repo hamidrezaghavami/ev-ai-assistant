@@ -320,6 +320,8 @@
                 <div class="status-line"><span>SYSTEM CORE:</span> <span>ONLINE</span></div>
                 <div class="status-line"><span>WS DATA LINK:</span> <span id="ws-status" style="color: red; text-shadow: 0 0 5px red;">DISCONNECTED</span></div>
                 <div class="status-line"><span>RENDER ENGINE:</span> <span>STANDBY</span></div>
+                <button class="hud-btn" onclick="copyContent()">[ COPY WHITEBOARD ]</button>
+                <button class="hud-btn" onclick="exportReport()">[ EXPORT REPORT ]</button>
             </div>
             
             <div style="color: #fff; margin-bottom: 10px; border-bottom: 1px solid #00ffff;">LIVE TELEMETRY</div>
@@ -462,6 +464,21 @@
 
         function toggleSidebar() {
             document.getElementById('memory-sidebar').classList.toggle('active');
+        }
+
+        function copyContent() {
+            const text = document.getElementById('ev-display-screen').innerText;
+            navigator.clipboard.writeText(text).then(() => addLog("Whiteboard text copied."));
+        }
+        
+        function exportReport() {
+            const text = document.getElementById('ev-display-screen').innerText;
+            const blob = new Blob([text], { type: 'text/markdown' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'EV_Lab_Report.md';
+            link.click();
+            addLog("Lab report exported as Markdown.");
         }
     </script>
 </body>
