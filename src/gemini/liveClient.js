@@ -18,18 +18,16 @@ const WORKSPACE_DIR = path.resolve(os.homedir(), 'Desktop', 'EV_Workspace');
 
 // --- Start the local UI Server Handshake ---
 const wss = new WebSocketServer({ port: 8080 });
+const hudWss = new WebSocketServer({ port: 8082 });
 let globalEV = null;
+
+hudWss.on('connection', (ws) => {
+  console.log('✅ HUD CONNECTED ON PORT 8082');
+  ws.send(JSON.stringify({ type: 'log', message: 'HUD Visual Link Established.' }));
+});
 
 // Routes incoming mobile app text and OSINT triggers to E.V.
 wss.on('connection', (ws) => {
-  // 🖥️ Dedicated WebSocket Server for the Mac HUD
-  const hudWss = new WebSocketServer({ port: 8082 });
-  
-  hudWss.on('connection', (ws) => {
-    console.log('✅ HUD CONNECTED ON PORT 8082');
-    ws.send(JSON.stringify({ type: 'log', message: 'HUD Visual Link Established.' }));
-  });
-  
   console.log('✅ New Device Connected to Network (Port 8080)!');
   
   // Catch incoming text from the mobile app
@@ -59,9 +57,8 @@ function sendToHUD(type, payload) {
   console.log("\n--- RAW HUD PAYLOAD --- \n", payload ? payload.content : "EMPTY");
     const message = JSON.stringify({ type, ...payload });
     
-    // CRITICAL: This MUST be the WebSocket Server running on 8082
-    wss.clients.forEach(client => {
-        // Check if the connection is open (readyState === 1)
+    // CRITICAL: Now using hudWss to target Safari!
+    hudWss.clients.forEach(client => {
         if (client.readyState === 1) { 
             client.send(message);
         }
