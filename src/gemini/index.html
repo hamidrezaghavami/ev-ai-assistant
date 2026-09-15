@@ -201,7 +201,7 @@
             background: rgba(0, 10, 20, 0.95);
             border-right: 1px solid #0ff;
             transition: left 0.3s ease;
-            z-index: 100;
+            z-index: 999;
             padding: 20px;
             box-sizing: border-box;
         }
@@ -301,7 +301,7 @@
                     font-family: monospace; 
                     font-size: 1.2rem; 
                     white-space: pre-wrap; 
-                    background-color: rgba(0, 255, 255, 0.05);
+                    background: #03060a;
                 ">
                     > Awaiting visual data...
                 </div>
@@ -429,11 +429,14 @@
         }
 
         visualArea.addEventListener('wheel', (e) => {
+            if ( e.metaKey || e.ctrlKey ) {
             e.preventDefault();
             const zoomIntensity = 0.1;
             scale += e.deltaY < 0 ? zoomIntensity : -zoomIntensity;
             scale = Math.min(Math.max(0.3, scale), 5); // Limit zoom between 0.3x and 5x
             updateTransform();
+            }
+            // If Cmd isn't held, let the box scroll normally!
         });
 
         visualArea.addEventListener('mousedown', (e) => {
@@ -460,6 +463,10 @@
         function resetZoom() {
             scale = 1; translateX = 0; translateY = 0;
             updateTransform();
+            
+            // Also reset the scrollbar to the top!
+            const screen = document.getElementById('ev-display-screen');
+            if (screen) screen.scrollTop = 0;
         }
 
         function toggleSidebar() {
