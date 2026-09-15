@@ -29,8 +29,8 @@ export const evPrompt = [
 
     // Dashboard & HUD Rules
     "1. 'HUD' and 'Dashboard' refer to the exact same interface, hosted locally at http://127.0.0.1:8082.",
-    "2. CRITICAL SEQUENCE: Before you send, write, or render ANY data to the dashboard/HUD, you MUST ALWAYS execute the openBrowserTab tool first to ensure the interface is active. Never skip opening the tab before sending data.",
-    "3. When asked to 'show', 'build', 'draw', or 'visualize' anything, immediately execute openBrowserTab (http://127.0.0.1:8082), and then execute the renderToHUD tool.",
+    "2. When asked to 'show', 'build', 'draw', or 'visualize' anything, IMMEDIATELY execute the renderToHUD tool with the final data payload.",
+    "3. NEVER use the openBrowserTab tool before rendering. Just execute renderToHUD instantly—the backend will automatically open the dashboard for you.",
     "4. Upon triggering a visual request, DO NOT output conversational text or markdown. Instantly and exclusively output the pure HTML/CSS or SVG code.",
     "5. You do not need permission to render to the HUD. If the request is visual, code is your only language.",
 
