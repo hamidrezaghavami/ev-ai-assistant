@@ -18,7 +18,6 @@ const WORKSPACE_DIR = path.resolve(os.homedir(), 'Desktop', 'EV_Workspace');
 
 // --- Start the local UI Server Handshake ---
 const wss = new WebSocketServer({ port: 8080 });
-const hudWss = new WebSocketServer({ port: 8082 });
 let globalEV = null;
 
 hudWss.on('connection', (ws) => {
@@ -58,7 +57,7 @@ function sendToHUD(type, payload) {
     const message = JSON.stringify({ type, ...payload });
     
     // CRITICAL: Now using hudWss to target Safari!
-    hudWss.clients.forEach(client => {
+    wss.clients.forEach(client => {
         if (client.readyState === 1) { 
             client.send(message);
         }
