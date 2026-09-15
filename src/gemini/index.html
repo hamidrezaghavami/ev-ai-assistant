@@ -369,7 +369,7 @@
                     
                     const displayScreen = document.getElementById('ev-display-screen');
                     if (displayScreen) {
-                        displayScreen.innerHTML = data.content || "ERROR: Payload was empty!";
+                        displayScreen.innerHTML += "<br><br>" + (data.content || "ERROR: Payload was empty!");
                         
                         // 🛡️ Added try/catch here so MathJax bugs don't crash the page
                         if (window.MathJax) {
