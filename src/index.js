@@ -82,13 +82,13 @@ const toolMap = {
 
   closeActiveBrowserTab: async () => await closeActiveBrowserTab(),
 
-  display_on_hud: async (args) => {
+  renderToHUD: async (args) => {
     console.log("🚨 INCOMING ARGS FROM E.V.:", args);
     
     // 🛡️ THE SMART LOCK: If the HUD isn't connected, FORCE IT OPEN automatically!
     if (hudClients.size === 0) {
       console.log("⚠️ HUD is closed! Auto-launching Safari to catch the data...");
-      exec('open http://127.0.0.1:8082'); // This requires the 'exec' import at the top of your file
+      exec('open http://127.0.0.1:8082'); 
       
       console.log("⏳ Waiting for HUD to boot up and connect...");
       await new Promise(resolve => {
@@ -103,7 +103,8 @@ const toolMap = {
       });
     }
 
-    broadcastHUD({ type: 'display', content: args.content });
+    // CRITICAL FIX: Changed args.content to args.htmlContent
+    broadcastHUD({ type: 'display', content: args.htmlContent });
     return "Successfully displayed the content on the HUD.";
   },
   
