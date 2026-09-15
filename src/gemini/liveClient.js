@@ -56,6 +56,7 @@ wss.on('connection', (ws) => {
 
 // Broadcast E.V.'s replies back to ALL screens (HUD + Mobile)
 function sendToHUD(type, payload) {
+  console.log("\n--- RAW AI OUTPUT --- \n", args.htmlContent);
     const message = JSON.stringify({ type, ...payload });
     
     // CRITICAL: This MUST be the WebSocket Server running on 8082
