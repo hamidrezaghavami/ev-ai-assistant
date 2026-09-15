@@ -359,7 +359,6 @@
         ws.onmessage = (event) => {
             console.log('WS INCOMING:', event.data);
             
-            // 🛡️ Added try/catch here so bad JSON doesn't kill the connection
             try {
                 const data = JSON.parse(event.data);
                 if (data.type === 'log') {
@@ -369,42 +368,33 @@
                     
                     const displayScreen = document.getElementById('ev-display-screen');
                     if (displayScreen) {
-                        // Create a clean new block for every render
-                        const newBlock = document.createElement('div');
-                        newBlock.style.marginTop = "20px";
-                        newBlock.style.borderTop = "1px dashed rgba(0, 255, 255, 0.3)";
-                        newBlock.style.paddingTop = "20px";
-                        newBlock.innerHTML = data.content || "ERROR: Payload was empty!";
+                        // THE ORIGINAL WORKING WAY: Just cleanly replace the HTML
+                        displayScreen.innerHTML = data.content || "ERROR: Payload was empty!";
                         
-                        displayScreen.appendChild(newBlock);
-                        
-                        // Auto-scroll to the newest data automatically
-                        displayScreen.scrollTop = displayScreen.scrollHeight;
-                        
-                        // 🛡️ Added try/catch here so MathJax bugs don't crash the page
+                        // 🛡️ Safe MathJax rendering
                         if (window.MathJax) {
                             try {
                                 MathJax.typesetClear();
-                                MathJax.typesetPromise([displayScreen]).catch((err) => console.log('Math promise error:', err.message));
-                            } catch (mathErr) {
-                                console.error('MathJax fatal error bypassed:', mathErr);
+                                MathJax.typesetPromise([displayScreen]).catch(e => console.log('Math promise error:', e.message));
+                            } catch (e) {
+                                console.error('MathJax fatal error bypassed:', e);
                             }
                         }
                         
-                        // Force Mermaid to draw software diagrams
+                        // 🛡️ Safe Mermaid rendering
                         if (window.mermaid) {
                             try { 
                                 mermaid.init(undefined, displayScreen.querySelectorAll('.mermaid')); 
-                            } catch (err) { 
-                                console.error('Mermaid error:', err); 
+                            } catch (e) {
+                                console.error('Mermaid error:', e);
                             }
                         }
                     } else {
                         addLog("ERROR: Could not find ev-display-screen div!");
                     }
                 }
-            } catch (parseErr) {
-                console.error('Failed to parse incoming WebSocket JSON:', parseErr);
+            } catch (err) {
+                console.error('Failed to parse incoming WebSocket JSON:', err);
             }
         };
 
