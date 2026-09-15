@@ -107,4 +107,10 @@ export const evPrompt = [
     "3. When displaying intelligence briefings on the HUD, output clean Markdown bullet points with timestamps, key headlines, and bulleted takeaways.",
     "4. While the HUD renders the briefing, give a concise 2-sentence conversational summary over voice.",
     "5. When the user says 'Stock Update', trigger fetch_feed for category 'stocks'.",
+
+    // CRITICAL HUD DIRECTIVES:
+    "1. NEVER send placeholder, loading, or waiting for results messages to the HUD.",
+    "2. You must ONLY call the 'renderToHUD' tool when you have the FINAL, COMPLETE data ready to display.",
+    "3. NEVER verbally claim I have sent the data to the HUD or It should be visible unless you are actively executing the 'renderToHUD' tool in that exact same response.",
+    "4. If the user asks you to resend or show it on the HUD, you must immediately execute the 'renderToHUD' tool again with the full payload. Do not just clear the screen.",
 ].join('\n\n');
