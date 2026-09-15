@@ -268,13 +268,6 @@ export class EVLiveClient {
       return { status: "success", message: "System ready to power off." };
     }
 
-    // 🖥️ EXPLICIT RENDER CATCH
-    if (name === 'renderToHUD') {
-      console.log(`\n🖥️ SENDING DATA TO HUD... Length: ${args.htmlContent?.length}`);
-      sendToHUD('display', { content: args.htmlContent });
-      return { status: "success", message: "Successfully rendered to the user's screen." };
-    }
-
     // 📝 WRITE / UPDATE FILE
     if (name === 'writeWorkspaceFile') {
       try {
