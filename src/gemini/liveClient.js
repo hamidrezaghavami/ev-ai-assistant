@@ -48,11 +48,15 @@ wss.on('connection', (ws) => {
 
 // Broadcast E.V.'s replies back to ALL screens (HUD + Mobile)
 function sendToHUD(type, payload) {
-  wss.clients.forEach(client => {
-    if (client.readyState === 1) { // 1 = OPEN
-      client.send(JSON.stringify({ type: type, ...payload }));
-    }
-  });
+    const message = JSON.stringify({ type, ...payload });
+    
+    // CRITICAL: This MUST be the WebSocket Server running on 8082
+    hudWss.clients.forEach(client => {
+        // Check if the connection is open (readyState === 1)
+        if (client.readyState === 1) { 
+            client.send(message);
+        }
+    });
 }
 
 // Stores RSS feed URLs for keyword-based news sweeps.
