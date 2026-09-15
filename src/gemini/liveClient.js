@@ -20,11 +20,6 @@ const WORKSPACE_DIR = path.resolve(os.homedir(), 'Desktop', 'EV_Workspace');
 const wss = new WebSocketServer({ port: 8080 });
 let globalEV = null;
 
-hudWss.on('connection', (ws) => {
-  console.log('✅ HUD CONNECTED ON PORT 8082');
-  ws.send(JSON.stringify({ type: 'log', message: 'HUD Visual Link Established.' }));
-});
-
 // Routes incoming mobile app text and OSINT triggers to E.V.
 wss.on('connection', (ws) => {
   console.log('✅ New Device Connected to Network (Port 8080)!');
@@ -53,14 +48,9 @@ wss.on('connection', (ws) => {
 
 // Broadcast E.V.'s replies back to ALL screens (HUD + Mobile)
 function sendToHUD(type, payload) {
-  console.log("\n--- RAW HUD PAYLOAD --- \n", payload ? payload.content : "EMPTY");
     const message = JSON.stringify({ type, ...payload });
-    
-    // CRITICAL: Now using hudWss to target Safari!
     wss.clients.forEach(client => {
-        if (client.readyState === 1) { 
-            client.send(message);
-        }
+        if (client.readyState === 1) client.send(message);
     });
 }
 
