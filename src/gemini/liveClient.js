@@ -22,6 +22,14 @@ let globalEV = null;
 
 // Routes incoming mobile app text and OSINT triggers to E.V.
 wss.on('connection', (ws) => {
+  // 🖥️ Dedicated WebSocket Server for the Mac HUD
+  const hudWss = new WebSocketServer({ port: 8080 });
+  
+  hudWss.on('connection', (ws) => {
+    console.log('✅ HUD CONNECTED ON PORT 8080');
+    ws.send(JSON.stringify({ type: 'log', message: 'HUD Visual Link Established.' }));
+  });
+
   console.log('✅ New Device Connected to Network (Port 8080)!');
   
   // Catch incoming text from the mobile app
