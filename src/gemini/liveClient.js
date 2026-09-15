@@ -3,11 +3,12 @@ import { evToolsDeclaration } from '../tools/schemas.js';
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
-import { exec, execSync, spawn } from 'child_process';
-import { GlobalKeyboardListener } from 'node-global-key-listener';
+import { execSync, spawn } from 'child_process';
 import readline from 'readline';
 import { evPrompt } from './prompt.js';
+import Parser from 'rss-parser';
 
+// gemini API URls and hosting, keys
 const API_KEY = process.env.GEMINI_API_KEY;
 const HOST = 'generativelanguage.googleapis.com';
 const URI = `wss://${HOST}/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${API_KEY}`;
@@ -19,6 +20,7 @@ const WORKSPACE_DIR = path.resolve(os.homedir(), 'Desktop', 'EV_Workspace');
 const wss = new WebSocketServer({ port: 8080 });
 let globalEV = null;
 
+// Routes incoming mobile app text and OSINT triggers to E.V.
 wss.on('connection', (ws) => {
   console.log('✅ New Device Connected to Network (Port 8080)!');
   
@@ -53,6 +55,23 @@ function sendToHUD(type, payload) {
   });
 }
 
+// Stores RSS feed URLs for keyword-based news sweeps.
+const parser = new Parser();
+const FEED_SOURCES = {
+  crypto: [
+    'https://www.coindesk.com/arc/outboundfeeds/rss/',
+    'https://cointelegraph.com/rss'
+  ],
+  tech: [
+    'https://techcrunch.com/feed/',
+    'https://news.ycombinator.com/rss'
+  ],
+  stocks: [
+    'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664', // CNBC Markets
+    'https://feeds.a.dj.com/rss/RSSMarketsMain.xml' // WSJ Markets
+  ],
+};
+
 export class EVLiveClient {
   constructor(onToolCall) {
     this.externalToolHandler = onToolCall;
@@ -66,6 +85,7 @@ export class EVLiveClient {
     this.isPlayingAudio = false;
   }
 
+// Connects to Gemini API and starts local input listeners.
   connect() {
     globalEV = this;
     if (!API_KEY) {
@@ -178,6 +198,7 @@ export class EVLiveClient {
     this.ws.on('error', (err) => console.error('❌ WebSocket Error:', err));
   }
 
+// Sends system prompt, voice, and tool configs to Gemini.
   sendInitialSetup() {
     let rawFunctions = [];
     
@@ -422,6 +443,7 @@ export class EVLiveClient {
     }
   }
 
+// Handles incoming API responses, tool calls, and outputs.
   async handleServerMessage(message) {
     // 🛑 The only tools E.V. needs permission for
     const dangerousTools = ['edit_file', 'delete_file'];
@@ -571,6 +593,7 @@ export class EVLiveClient {
     });
   }
 
+// Sends text prompts directly to E.V.
   sendTextMessage(text) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       const message = {
@@ -589,101 +612,25 @@ export class EVLiveClient {
     }
   }
 
-  setupWalkieTalkie() {
-    const keyboard = new GlobalKeyboardListener();
-    let isHoldingSpace = false;
+// Function called when E.V. executes the feed tool
+async fetchBriefingFeed(category) {
+  const urls = FEED_SOURCES[category] || FEED_SOURCES.tech;
+  let briefingItems = [];
 
-    console.log("\n🎙️ TRUE HOLD-TO-TALK ACTIVE:");
-    console.log("  - HOLD [SPACEBAR] to open the mic.");
-    console.log("  - RELEASE to close the mic and send to E.V.");
-    console.log("  - Press [Ctrl + C] to quit.");
-
-    keyboard.addListener((e) => {
-      // We only care about the Spacebar
-      if (e.name === "SPACE") {
-        
-        // 🟢 KEY DOWN: Open the mic
-        if (e.state === "DOWN" && !isHoldingSpace) {
-          isHoldingSpace = true;
-          if (this.isMuted) {
-            this.isMuted = false;
-            console.log("\n🟢 [MIC OPEN] Listening... (Keep holding)");
-          }
-        }
-        
-        // 🔴 KEY UP: Close the mic
-        else if (e.state === "UP" && isHoldingSpace) {
-          isHoldingSpace = false;
-          if (!this.isMuted) {
-            this.isMuted = true;
-            console.log("\n🔴 [MIC CLOSED] Processing...");
-            
-            // 🚨 THE FIX: Tell Gemini "OVER!" so she answers immediately
-            if (this.ws && this.ws.readyState === 1) {
-              this.ws.send(JSON.stringify({
-                clientContent: {
-                  turnComplete: true
-                }
-              }));
-            }
-          }
-        }
-      }
-    });
+  for (const url of urls) {
+    try {
+      const feed = await parser.parseURL(url);
+      const topItems = feed.items.slice(0, 3).map(item => ({
+        title: item.title,
+        source: feed.title,
+        link: item.link,
+        date: item.pubDate
+      }));
+      briefingItems.push(...topItems);
+    } catch (err) {
+      console.error(`Feed pull failed for ${url}:`, err.message);
+    }
   }
-
-// Start streaming microphone input to Gemini
-  startMicrophoneStream() {
-    if (this.mic) return;
-    console.log("🎤 Microphone active. Start speaking...");
-    
-    this.mic = spawn('/opt/homebrew/bin/rec', [
-      '-q', '-t', 'raw', '-r', '16000', '-e', 'signed', '-b', '16', '-c', '1', '-'
-    ]);
-
-    // 🪣 Create a holding tank for raw audio bytes
-    let audioBuffer = Buffer.alloc(0); 
-
-    this.mic.stdout.on('data', (data) => {
-      if (this.isMuted) return;
-      
-      // 1. Pour new incoming audio into the holding tank
-      audioBuffer = Buffer.concat([audioBuffer, data]);
-
-      // 2. ONLY extract and send audio when we have a perfect, even block of 4096 bytes
-      // This guarantees we never split a 16-bit (2-byte) sample in half!
-      while (audioBuffer.length >= 4096) {
-        const chunk = audioBuffer.slice(0, 4096);
-        audioBuffer = audioBuffer.slice(4096); // Keep any leftover bytes for the next round
-
-        // 3. Volume Check (for visual dots only)
-        let maxVolume = 0;
-        for (let i = 0; i < chunk.length; i += 2) {
-          const val = Math.abs(chunk.readInt16LE(i));
-          if (val > maxVolume) maxVolume = val;
-        }
-        if (maxVolume >= 1500) process.stdout.write('.');
-
-        // 4. Send the perfectly aligned chunk to Gemini
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-          const message = {
-            realtimeInput: {
-              audio: {
-                mimeType: "audio/pcm;rate=16000",
-                data: chunk.toString('base64')
-              }
-            }
-          };
-          this.ws.send(JSON.stringify(message));
-        }
-      }
-    });
-
-    this.mic.stderr.on('data', (err) => {
-      const errorMsg = err.toString();
-      if (!errorMsg.includes('WARN')) {
-        console.error(`\n❌ Mic error: ${errorMsg}`);
-      }
-    });
-  }
+  return briefingItems;
+}
 }
