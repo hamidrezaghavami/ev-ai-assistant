@@ -369,7 +369,17 @@
                     
                     const displayScreen = document.getElementById('ev-display-screen');
                     if (displayScreen) {
-                        displayScreen.innerHTML += "<br><br>" + (data.content || "ERROR: Payload was empty!");
+                        // Create a clean new block for every render
+                        const newBlock = document.createElement('div');
+                        newBlock.style.marginTop = "20px";
+                        newBlock.style.borderTop = "1px dashed rgba(0, 255, 255, 0.3)";
+                        newBlock.style.paddingTop = "20px";
+                        newBlock.innerHTML = data.content || "ERROR: Payload was empty!";
+                        
+                        displayScreen.appendChild(newBlock);
+                        
+                        // Auto-scroll to the newest data automatically
+                        displayScreen.scrollTop = displayScreen.scrollHeight;
                         
                         // 🛡️ Added try/catch here so MathJax bugs don't crash the page
                         if (window.MathJax) {
