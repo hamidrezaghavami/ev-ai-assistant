@@ -69,13 +69,33 @@ const FEED_SOURCES = {
     'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664', // CNBC Markets
     'https://feeds.a.dj.com/rss/RSSMarketsMain.xml' // WSJ Markets
   ],
+  turkey_law: [
+    'https://en.goc.gov.tr/',
+    'https://e-ikamet.goc.gov.tr/',
+    'https://yimer.gov.tr/en',
+    'https://www.resmigazete.gov.tr/',
+    'https://www.gib.gov.tr/',
+    'https://dijital.gib.gov.tr/',
+    'https://faolex.fao.org/docs/pdf/ira206827.pdf'
+  ],
+  iran_law: [
+    'https://vazife.police.ir/',
+    'https://sazmanvazife.ir/',
+    'https://www.intamedia.ir/',
+    'https://tax.gov.ir/',
+    'https://mcls.gov.ir/',
+    'https://www.mcls.gov.ir/fa/'
+  ],
+  international_framework: [
+    'https://www.oecd.org/en/topics/tax-queries.html'
+  ],
 };
 
 export class EVLiveClient {
   constructor(onToolCall) {
     this.externalToolHandler = onToolCall;
     this.ws = null;
-    this.currentModel = 'models/gemini-3.1-flash-live-preview'; 
+    this.currentModel = 'models/gemini-3.8-live'; 
 
     // Start the persistent SoX audio process
     this.audioPlayer = spawn('sox', ['-q', '-t', 'raw', '-r', '24000', '-e', 'signed', '-b', '16', '-c', '1', '-', '-d']);
@@ -249,6 +269,17 @@ export class EVLiveClient {
               }
             },
             required: ["htmlContent"]
+          }
+        },
+        {
+          name: "scrapeWebsite",
+          description: "Scrapes standard HTML websites, PDFs, or government portals and returns the raw readable text.",
+          parameters: {
+            type: "OBJECT",
+            properties: {
+              url: { type: "STRING", description: "The exact URL to scrape." }
+            },
+            required: ["url"]
           }
         }
       ]

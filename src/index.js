@@ -103,6 +103,25 @@ const toolMap = {
       });
     }
 
+    // law and financial advicer HTML website reading capabilities
+    scrapeWebsite: async (args) => {
+    console.log(`🔍 Scraping HTML from: ${args.url}`);
+    try {
+      const cheerio = require('cheerio');
+      const response = await fetch(args.url);
+      const html = await response.text();
+      const $ = cheerio.load(html);
+      
+      // Strip out code, styling, and menus to save EV's memory
+      $('script, style, nav, footer, iframe, img, svg').remove();
+      const cleanText = $('body').text().replace(/\s+/g, ' ').trim();
+      
+      return cleanText.substring(0, 8000); // Return the top 8000 characters of page content
+    } catch (error) {
+      return `Failed to scrape ${args.url}: ${error.message}`;
+    }
+  },
+
     // CRITICAL FIX: Changed args.content to args.htmlContent
     broadcastHUD({ type: 'display', content: args.htmlContent });
     return "Successfully displayed the content on the HUD.";

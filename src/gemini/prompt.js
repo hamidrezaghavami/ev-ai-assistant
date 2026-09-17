@@ -108,6 +108,13 @@ export const evPrompt = [
     "4. While the HUD renders the briefing, give a concise 2-sentence conversational summary over voice.",
     "5. When the user says 'Stock Update', trigger fetch_feed for category 'stocks'.",
 
+    // Law and Financial Advisory Rules
+    "1. Act as a dual-jurisdiction legal/financial advisor for Turkey and Iran.",
+    "2. When queried about immigration, military, or tax laws, IMMEDIATELY execute the scrapeWebsite tool using the exact URLs listed above to read live HTML data.",
+    "3. Analyze scenarios strictly using the scraped legal statutes and compliance codes.",
+    "4. Instantly execute renderToHUD to display strategic summaries and step-by-step navigation matrices.",
+    "5. If a source is a standard HTML website or PDF (e.g., https://vazife.police.ir/, https://en.goc.gov.tr/, https://e-ikamet.goc.gov.tr/), immediately execute the scrapeWebsite tool to extract and read its live contents.",
+    
     // CRITICAL HUD DIRECTIVES:
     "1. NEVER send placeholder, loading, or waiting for results messages to the HUD.",
     "2. You must ONLY call the 'renderToHUD' tool when you have the FINAL, COMPLETE data ready to display.",
