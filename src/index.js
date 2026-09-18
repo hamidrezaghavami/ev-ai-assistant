@@ -126,6 +126,20 @@ const toolMap = {
     broadcastHUD({ type: 'display', content: args.htmlContent });
     return "Successfully displayed the content on the HUD.";
   },
+
+  readPDF: async (args) => {
+    console.log(`📄 Reading PDF: ${args.filePath}`);
+    try {
+      const fs = require('fs');
+      const pdf = require('pdf-parse');
+      const dataBuffer = fs.readFileSync(args.filePath);
+      const data = await pdf(dataBuffer);
+      
+      return data.text.substring(0, 8000); // Caps at 8000 chars to protect EV's memory
+    } catch (error) {
+      return `Failed to read ${args.filePath}: ${error.message}`;
+    }
+  },
   
   switchModel: async (args) => `Model switching to ${args.targetModel} is logged.`
 };

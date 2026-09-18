@@ -25,6 +25,7 @@
     "expo": "^57.0.20",
     "expo-speech-recognition": "^57.0.0",
     "expo-status-bar": "~57.0.1",
+    "pdf-parse": "^2.4.5",
     "react-native-safe-area-context": "~5.7.0",
     "rss-parser": "^3.13.0",
     "ws": "^8.21.1"

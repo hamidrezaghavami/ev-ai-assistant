@@ -76,7 +76,8 @@ const FEED_SOURCES = {
     'https://www.resmigazete.gov.tr/',
     'https://www.gib.gov.tr/',
     'https://dijital.gib.gov.tr/',
-    'https://faolex.fao.org/docs/pdf/ira206827.pdf'
+    'https://faolex.fao.org/docs/pdf/ira206827.pdf',
+    'https://www.gib.gov.tr/mevzuat/kanun/434'
   ],
   iran_law: [
     'https://vazife.police.ir/',
