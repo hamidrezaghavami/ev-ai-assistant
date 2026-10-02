@@ -8,12 +8,13 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { exec } from 'child_process';
+import * as cheerio from 'cheerio';
+import pdf from 'pdf-parse';
 import { WebSocketServer } from 'ws';
 import { initWorkspace, writeWorkspaceFile, readWorkspaceFile, deleteWorkspaceFile } from './tools/fsSandbox.js';
 import { openBrowserTab, closeActiveBrowserTab } from './tools/browser.js';
 import { evToolsDeclaration } from './tools/schemas.js';
 import { EVLiveClient } from './gemini/liveClient.js';
-
 export { evToolsDeclaration };
 
 // --- HUD Server & Telemetry Setup ---
@@ -82,6 +83,24 @@ const toolMap = {
 
   closeActiveBrowserTab: async () => await closeActiveBrowserTab(),
 
+  // law and financial advicer HTML website reading capabilities
+  scrapeWebsite: async (args) => {
+    console.log(`🔍 Scraping HTML from: ${args.url}`);
+    try {
+      const response = await fetch(args.url);
+      const html = await response.text();
+      const $ = cheerio.load(html);
+      
+      // Strip out code, styling, and menus to save EV's memory
+      $('script, style, nav, footer, iframe, img, svg').remove();
+      const cleanText = $('body').text().replace(/\s+/g, ' ').trim();
+      
+      return cleanText.substring(0, 8000);
+    } catch (error) {
+      return `Failed to scrape ${args.url}: ${error.message}`;
+    }
+  },
+
   renderToHUD: async (args) => {
     console.log("🚨 INCOMING ARGS FROM E.V.:", args);
     
@@ -103,35 +122,24 @@ const toolMap = {
       });
     }
 
-    // law and financial advicer HTML website reading capabilities
-    scrapeWebsite: async (args) => {
-    console.log(`🔍 Scraping HTML from: ${args.url}`);
-    try {
-      const cheerio = require('cheerio');
-      const response = await fetch(args.url);
-      const html = await response.text();
-      const $ = cheerio.load(html);
-      
-      // Strip out code, styling, and menus to save EV's memory
-      $('script, style, nav, footer, iframe, img, svg').remove();
-      const cleanText = $('body').text().replace(/\s+/g, ' ').trim();
-      
-      return cleanText.substring(0, 8000); // Return the top 8000 characters of page content
-    } catch (error) {
-      return `Failed to scrape ${args.url}: ${error.message}`;
-    }
-  },
+    // Add the KaTeX libraries and trigger the render math function on load
+    const mathScripts = `
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+      <script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+      <script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    `;
+    
+    // Combine EV's raw HTML with the math scripts
+    const finalHtml = args.htmlContent + mathScripts;
 
-    // CRITICAL FIX: Changed args.content to args.htmlContent
-    broadcastHUD({ type: 'display', content: args.htmlContent });
+    // Broadcast the combined HTML to the HUD
+    broadcastHUD({ type: 'display', content: finalHtml });
     return "Successfully displayed the content on the HUD.";
   },
 
   readPDF: async (args) => {
     console.log(`📄 Reading PDF: ${args.filePath}`);
     try {
-      const fs = require('fs');
-      const pdf = require('pdf-parse');
       const dataBuffer = fs.readFileSync(args.filePath);
       const data = await pdf(dataBuffer);
       
